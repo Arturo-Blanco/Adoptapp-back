@@ -1,25 +1,36 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable, HttpStatus } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { City } from './entities/city.entity';
+import { Repository } from 'typeorm';
+import { CreateCityDTO } from './dto/city.dto';
 
 
 @Injectable()
 export class CityService {
-  create(createCityDto) {
-    return 'This action adds a new city';
-  }
 
-  findAll() {
-    return `This action returns all city`;
-  }
+  constructor(
+    @InjectRepository(City)
+    private readonly cityRepository: Repository<City>
+  ) { }
 
-  findOne(id: number) {
-    return `This action returns a #${id} city`;
+  async addCity(city: CreateCityDTO): Promise<string> {
+    try {
+      const newCity: City = await this.cityRepository.save(new City(city.name, city.zipCode))
+      if (newCity) {
+        return `Added the city: ${city.name}.`
+      }
+      else {
+        throw new Error(`Error when adding the city: ${city.name}.`)
+      }
+    } catch (error) {
+      throw new HttpException({
+        status: HttpStatus.CONFLICT,
+        error: `Error when adding new city -` + error,
+      },
+        HttpStatus.CONFLICT);
+    };
   }
-
-  update(id: number, updateCityDto) {
-    return `This action updates a #${id} city`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} city`;
+  async allCities(): Promise<City[]> {
+    return await this.cityRepository.find()
   }
 }
