@@ -1,5 +1,4 @@
-import { City } from "src/city/entities/city.entity";
-import { Attribute } from "../attributes/entities/attribute.entity";
+
 
 export class CreatePetDTO {
     name: string;
@@ -7,7 +6,7 @@ export class CreatePetDTO {
     sex: string;
     age: number;
     zipCode: number;
-    attributes : Attribute[];
+    attributes : string[];
     description: string;
     urlImg: string;
 }

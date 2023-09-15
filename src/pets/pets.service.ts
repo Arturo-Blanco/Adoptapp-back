@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Pet } from './entities/pet.entity';
-import { Repository } from 'typeorm';
+import { FindManyOptions, FindOneOptions, Repository } from 'typeorm';
 import { CreatePetDTO, PetDTO } from './dto/pet.dto';
 import { City } from 'src/city/entities/city.entity';
 import { Attribute } from './attributes/entities/attribute.entity';
@@ -20,34 +20,43 @@ export class PetsService {
 
   async addPet(petDTO: CreatePetDTO): Promise<any> {
     try {
-
-      const city = await this.cityRepository.findOne({ where: { zipCode: petDTO.zipCode } });
+      // First the city is verified with its zip code
+      const criterion: FindOneOptions = { where: { zipCode: petDTO.zipCode } };
+      const city = await this.cityRepository.findOne(criterion);
+      // If the city doesn't exits a new errro is generated
       if (!city) {
-        throw new Error(`Error when selecting city ${city.name}.`);
+        throw new Error(`There isn't city with a code ${petDTO.zipCode}.`);
       }
-      const attributeName = petDTO.attributes.map(attribute => attribute);
-      console.log(attributeName)
-      const attributes = await this.attributRepository
-        .createQueryBuilder('attribute')
-        .where('attribute.name IN (:...attributeName)', { attributeName })
-        .getMany();
-      console.log(attributes)
+      // Pets attributes are mapped. If the attribute doesn't exist, it's created and assigned to that pet
+      const attributeNames = petDTO.attributes.map(attribute => attribute.toLowerCase());
+      const attributes = await Promise.all(
+        attributeNames.map(async attributeName => {
+
+          const criterion: FindOneOptions = { where: { name: attributeName } };
+          let attribute = await this.attributRepository.findOne(criterion);
+          if (!attribute) {
+            attribute = new Attribute(attributeName);
+            await this.attributRepository.save(attribute);
+          }
+          return attribute;
+        })
+      )
+      // A new pet is created with its arguments
       const newPet: Pet = new Pet(petDTO.name, petDTO.specie, petDTO.sex, petDTO.age, city, attributes, petDTO.description, petDTO.urlImg);
-/*
       if (newPet) {
         await this.petRepository.save(newPet);
         return `Added pet ${petDTO.name}.`
       } else {
         throw new Error(`Error when adding pet ${petDTO.name}.`);
-      }*/
+      }
     } catch (error) {
       throw new HttpException({
-        status: HttpStatus.CONFLICT,
-        error: `Error al agregar la mascota ${petDTO.name} - ` + error,
+        status: HttpStatus.BAD_REQUEST,
+        error: `Error al agregar la mascota ${petDTO.name} - ` + error.message,
       },
         HttpStatus.BAD_REQUEST);
     }
-  }
+  };
 
   async countPets(): Promise<number> {
     try {
@@ -56,31 +65,38 @@ export class PetsService {
     catch (error) {
       throw new HttpException({
         status: HttpStatus.BAD_REQUEST,
-        error: `Error when counting pets -` + error,
+        error: `Error when counting pets -` + error.message,
       },
-        HttpStatus.BAD_REQUEST)
+        HttpStatus.BAD_REQUEST);
+    }
+  };
+
+  async allPets(): Promise<PetDTO[]> {
+    try {
+      // Get pets with their relationship and values
+      const criterion : FindManyOptions = { relations: ['attributes', 'city']};
+      const data = await this.petRepository.find(criterion);
+      if (data) {
+        const petData: PetDTO[] = data.map(pet => ({
+          id: pet.id,
+          name: pet.name,
+          sex: pet.sex,
+          age: pet.age,
+          city: pet.city.name,
+          attributes: pet.attributes.map(attribut => (attribut.name)),
+          description: pet.description,
+          urlImg: pet.urlImg,
+          interested: pet.interested,
+        }));
+        return petData;
+      } else {
+        throw new Error('Error getting data.');
+      }
+    } catch (error) {
+      new HttpException({
+        status: HttpStatus.BAD_REQUEST,
+        error: 'Error gettin data - ' + error.message,
+      }, HttpStatus.BAD_REQUEST);
     }
   }
-  async allPets() : Promise <PetDTO[]> {
-    try {
-        const data = await this.petRepository.find({relations: ['attributes', 'city']});
-        if(data) {
-          const pet = data.map(pet => ({
-              id : pet.id,  
-              name : pet.name,
-              sex : pet.sex,
-              age: pet.age,
-              city: pet.city.name,
-              attributes : pet.attributes.map(attribut => (attribut.name)),
-              description: pet.description,
-              urlImg: pet.urlImg,
-              interested : pet.interested,
-          }))
-          return pet
-        }
-    }catch(error) {
-      console.error(error)
-    }
-  } 
-
 }
