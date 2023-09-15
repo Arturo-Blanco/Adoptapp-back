@@ -1,5 +1,6 @@
 import { City } from "src/city/entities/city.entity";
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, JoinColumn, ManyToOne } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, ManyToOne, CreateDateColumn, ManyToMany, JoinTable } from "typeorm";
+import { Attribute } from "../attributes/entities/attribute.entity";
 
 @Entity({ name: 'pets' })
 export class Pet {
@@ -7,7 +8,7 @@ export class Pet {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({ type: 'date' })
+    @CreateDateColumn()
     creationDate: Date;
 
     @Column()
@@ -23,8 +24,12 @@ export class Pet {
     age: number;
 
     @ManyToOne(() => City, city => city.pets)
-    @JoinColumn({ name: 'fk_city_id'})
-    public city : City;
+    @JoinColumn({ name: 'fk_city_id' })
+    city: City;
+
+    @ManyToMany(() => Attribute, attributes => attributes.pets)
+    @JoinTable({ name: 'pets_attributes'})
+    attributes : Attribute[];
 
     @Column()
     description: string;
@@ -32,17 +37,19 @@ export class Pet {
     @Column()
     urlImg: string;
 
-    @Column()
-    available: boolean;
+    @Column({type: 'boolean', default: true})
+    available: true;
 
-    @Column()
+    @Column({type: 'int', default : 0})
     interested: number;
 
-    constructor(name: string, age: number, specie: string, sex: string, description: string, urlImg: string) {
+    constructor(name: string, specie: string, sex: string, age: number, city: City , attributes: Attribute[], description: string, urlImg: string) {
         this.name = name;
-        this.age = age;
         this.specie = specie;
         this.sex = sex;
+        this.age = age;
+        this.city = city;
+        this.attributes = attributes;
         this.description = description;
         this.urlImg = urlImg;
     }
