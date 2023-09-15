@@ -1,32 +1,18 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { City } from './entities/city.entity';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { CityService } from './city.service';
+import { CreateCityDTO } from './dto/city.dto';
 
 @Controller('city')
 export class CityController {
-  constructor(private readonly cityService: CityService) {}
+  constructor(private readonly cityService: CityService) { }
 
-  @Post()
-  create(@Body() createCityDto) {
-    return this.cityService.create(createCityDto);
+  @Post('addCity')
+  async getAddCity(@Body() city: CreateCityDTO): Promise<string> {
+    return await this.cityService.addCity(city);
   }
-
-  @Get()
-  findAll() {
-    return this.cityService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.cityService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCityDto) {
-    return this.cityService.update(+id, updateCityDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.cityService.remove(+id);
+  @Get('all')
+  async getCities(): Promise<City[]> {
+    return await this.cityService.allCities();
   }
 }

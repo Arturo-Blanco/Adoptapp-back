@@ -4,6 +4,7 @@ import { UsersModule } from './users/users.module';
 import { ComplaintModule } from './complaint/complaint.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CityModule } from './city/city.module';
+import { AttributesModule } from './pets/attributes/attributes.module';
 
 @Module({
   imports: [
@@ -17,7 +18,7 @@ import { CityModule } from './city/city.module';
       "entities": [__dirname + "/**/**/**.entity{.ts,.js}"],
       "synchronize": true,
     }),
-    PetsModule, UsersModule, ComplaintModule, CityModule],
+    PetsModule, UsersModule, ComplaintModule, CityModule, AttributesModule],
   controllers: [],
   providers: [],
 })
