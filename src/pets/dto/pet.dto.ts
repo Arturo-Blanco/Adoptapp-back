@@ -1,5 +1,3 @@
-
-
 export class CreatePetDTO {
     name: string;
     specie: string;

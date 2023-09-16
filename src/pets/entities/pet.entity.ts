@@ -23,14 +23,6 @@ export class Pet {
     @Column()
     age: number;
 
-    @ManyToOne(() => City, city => city.pets)
-    @JoinColumn({ name: 'fk_city_id' })
-    city: City;
-
-    @ManyToMany(() => Attribute, attributes => attributes.pets)
-    @JoinTable({ name: 'pets_attributes'})
-    attributes : Attribute[];
-
     @Column()
     description: string;
 
@@ -38,11 +30,22 @@ export class Pet {
     urlImg: string;
 
     @Column({type: 'boolean', default: true})
-    available: true;
+    available: boolean;
 
     @Column({type: 'int', default : 0})
     interested: number;
 
+    @Column({ name: 'fk_city_id', nullable: false })
+    fk_city_id: number;
+
+    @ManyToOne(() => City, city => city.pets)
+    @JoinColumn({ name: 'fk_city_id' })
+    city: City;
+
+    @ManyToMany(() => Attribute, attributes => attributes.pets)
+    @JoinTable({ name: 'pets_attributes'})
+    attributes : Attribute[];
+    
     constructor(name: string, specie: string, sex: string, age: number, city: City , attributes: Attribute[], description: string, urlImg: string) {
         this.name = name;
         this.specie = specie;
@@ -87,6 +90,6 @@ export class Pet {
         this.urlImg = newUrlImg;
     }
     public setAvailable(): void {
-        !this.available;
+        this.available = false;
     }
 }

@@ -22,10 +22,6 @@ export class User {
     @Column()
     address: string;
 
-    @ManyToOne(() => City, city => city.users)
-    @JoinColumn({ name: 'fk_city_id' })
-    public city: City;
-
     @Column()
     hasPet: boolean;
 
@@ -35,12 +31,20 @@ export class User {
     @Column()
     interestedIn: number;
 
-    constructor(fullname: string, age: number, email: string, phoneNumber: number, address: string, hasPet: boolean, livingPlace: string, interestedIn: number) {
+    @Column({ name: 'fk_city_id', nullable: false })
+    fk_city_id: number;
+
+    @ManyToOne(() => City, city => city.users)
+    @JoinColumn({ name: 'fk_city_id' })
+    public city: City;
+
+    constructor(fullname: string, age: number, email: string, phoneNumber: number, address: string, city: City, hasPet: boolean, livingPlace: string, interestedIn: number) {
         this.fullname = fullname;
         this.age = age;
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.address = address;
+        this.city = city;
         this.hasPet = hasPet;
         this.livingPlace = livingPlace;
         this.interestedIn = interestedIn;

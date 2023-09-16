@@ -14,13 +14,11 @@ export class City {
     @Column({ unique: true })
     zipCode: number
 
-    @OneToMany(() => Pet, pets => pets.city)
-    @JoinColumn({name: 'fk_pet_id'})
-    public pets: Pet[];
+    @OneToMany(() => Pet, pet => pet.city)
+    pets: Pet[];
 
-    @OneToMany(() => User, users => users.city)
-    @JoinColumn({name: 'fk_user_id'})
-    public users: Pet[];
+    @OneToMany(() => User, user => user.city)
+    users: User[];
 
     constructor(name: string, zipCode: number) {
         this.name = name;
