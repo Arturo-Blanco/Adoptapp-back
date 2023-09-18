@@ -1,22 +1,33 @@
 export class CreatePetDTO {
-    name: string;
-    specie: string;
-    sex: string;
-    age: number;
-    zipCode: number;
-    attributes : string[];
-    description: string;
-    urlImg: string;
+    readonly name: string;
+    readonly specie: string;
+    readonly sex: string;
+    readonly age: number;
+    readonly zipCode: number;
+    readonly attributes: string[];
+    readonly description: string;
+    readonly urlImg: string;
+}
+
+export class UpdatePetDTO {
+    readonly name: string;
+    readonly specie: string;
+    readonly sex: string;
+    readonly age: number;
+    readonly zipCode: number;
+    readonly attributes: string[];
+    readonly description: string;
+    readonly urlImg: string;
 }
 
 export class PetDTO {
-    id: number;
-    name: string;
-    sex: string;
-    age: number;
-    city: string;
-    attributes: string[];
-    description: string;
-    urlImg: string;
-    interested: number;
+    readonly id: number;
+    readonly name: string;
+    readonly sex: string;
+    readonly age: number;
+    readonly city: string;
+    readonly attributes: string[];
+    readonly description: string;
+    readonly urlImg: string;
+    readonly interested: number;
 }
