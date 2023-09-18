@@ -257,6 +257,7 @@ export class PetsService {
       pet.setSpecie(body.specie);
       pet.setDescription(body.description);
       pet.setUrlImg(body.urlImg);
+      await this.petRepository.save(pet);
       return `The pet ${pet.name} was updated.`
 
     } catch (error) {
@@ -299,13 +300,13 @@ export class PetsService {
   checkValidKeys(body: Object) {
     const validKeys = ['name', 'age', 'zipCode', 'sex', 'description', 'urlImg', 'specie', 'attributes'];
     const keys = Object.keys(body);
-
+    
     for (const key of keys) {
-      if (validKeys.includes(key)) {
-        return true;
+      if (!validKeys.includes(key)) {
+        return false;
       }
     }
-    return false;
+    return true;
   }
 
   // Function to take, create, and assign attributes to the pet
