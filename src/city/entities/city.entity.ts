@@ -25,11 +25,16 @@ export class City {
         this.zipCode = zipCode;
     }
 
-    public getCityName() : string {
+    public getName(): string {
         return this.name;
     }
-    public getZipCode() : number {
+    public getZipCode(): number {
         return this.zipCode;
     }
-
+    public setName(newName: string): void {
+        this.name = newName;
+    }
+    public setZipCode(newZipCode: number): void {
+        this.zipCode = newZipCode;
+    }
 }

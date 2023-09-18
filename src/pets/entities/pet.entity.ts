@@ -29,10 +29,10 @@ export class Pet {
     @Column()
     urlImg: string;
 
-    @Column({type: 'boolean', default: true})
+    @Column({ type: 'boolean', default: true })
     available: boolean;
 
-    @Column({type: 'int', default : 0})
+    @Column({ type: 'int', default: 0 })
     interested: number;
 
     @Column({ name: 'fk_city_id', nullable: false })
@@ -43,10 +43,10 @@ export class Pet {
     city: City;
 
     @ManyToMany(() => Attribute, attributes => attributes.pets)
-    @JoinTable({ name: 'pets_attributes'})
-    attributes : Attribute[];
-    
-    constructor(name: string, specie: string, sex: string, age: number, city: City , attributes: Attribute[], description: string, urlImg: string) {
+    @JoinTable({ name: 'pets_attributes' })
+    attributes: Attribute[];
+
+    constructor(name: string, specie: string, sex: string, age: number, city: City, attributes: Attribute[], description: string, urlImg: string) {
         this.name = name;
         this.specie = specie;
         this.sex = sex;
@@ -77,8 +77,23 @@ export class Pet {
     public getInterested(): number {
         return this.interested;
     }
+    public setName(newName: string): void {
+        this.name = newName;
+    }
     public setAge(newAge: number): void {
         this.age = newAge;
+    }
+    public setSex(newSex : string) : void {
+        this.sex = newSex;
+    }
+    public setSpecie(newSpecie : string) : void {
+        this.specie = newSpecie;
+    }
+    public setAttributes(newAttributes: Attribute[]): void {
+        this.attributes = newAttributes;
+    }
+    public setCity(newZipCode : City) : void {
+        this.city = newZipCode;
     }
     public setDescription(newDescription: string): void {
         this.description = newDescription;
