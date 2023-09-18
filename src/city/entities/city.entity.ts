@@ -14,24 +14,27 @@ export class City {
     @Column({ unique: true })
     zipCode: number
 
-    @OneToMany(() => Pet, pets => pets.city)
-    @JoinColumn({name: 'fk_pet_id'})
-    public pets: Pet[];
+    @OneToMany(() => Pet, pet => pet.city)
+    pets: Pet[];
 
-    @OneToMany(() => User, users => users.city)
-    @JoinColumn({name: 'fk_user_id'})
-    public users: Pet[];
+    @OneToMany(() => User, user => user.city)
+    users: User[];
 
     constructor(name: string, zipCode: number) {
         this.name = name;
         this.zipCode = zipCode;
     }
 
-    public getCityName() : string {
+    public getName(): string {
         return this.name;
     }
-    public getZipCode() : number {
+    public getZipCode(): number {
         return this.zipCode;
     }
-
+    public setName(newName: string): void {
+        this.name = newName;
+    }
+    public setZipCode(newZipCode: number): void {
+        this.zipCode = newZipCode;
+    }
 }
