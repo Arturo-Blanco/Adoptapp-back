@@ -1,4 +1,9 @@
 export class CreateCityDTO {
-    name : string;
-    zipCode: number;
+    readonly name : string;
+    readonly zipCode: number;
+}
+
+export class UpdateCityDTO {
+    readonly name : string;
+    readonly zipCode : number;
 }

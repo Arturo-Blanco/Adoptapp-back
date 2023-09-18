@@ -1,7 +1,7 @@
 import { City } from './entities/city.entity';
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post } from '@nestjs/common';
 import { CityService } from './city.service';
-import { CreateCityDTO } from './dto/city.dto';
+import { CreateCityDTO, UpdateCityDTO } from './dto/city.dto';
 
 @Controller('city')
 export class CityController {
@@ -14,5 +14,9 @@ export class CityController {
   @Get('all')
   async getCities(): Promise<City[]> {
     return await this.cityService.allCities();
+  }
+  @Patch('update/:cityId')
+  async getUpdateCity(@Param('cityId', ParseIntPipe) cityId : number, @Body() data : UpdateCityDTO) : Promise <string> {
+      return await this.cityService.updateCity(cityId, data);
   }
 }

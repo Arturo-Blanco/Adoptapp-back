@@ -1,3 +1,3 @@
 export class AttributeDTO {
-    name : string;
+    readonly name : string;
 }
