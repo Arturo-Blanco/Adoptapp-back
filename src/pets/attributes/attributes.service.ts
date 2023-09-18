@@ -13,16 +13,21 @@ export class AttributesService {
 
     async addAttribute(attributeDTO: AttributeDTO): Promise<string> {
         try {
+            if (!attributeDTO.name) {
+                throw new Error('Missing field name.');
+            }
+            if (attributeDTO.name === "") {
+                throw new Error('Property name cannot be empty.');
+            }
             const newAttribute: Attribute = await this.attributesRepository.save(new Attribute(attributeDTO.name));
-            if (newAttribute) {
-                return `Added new attribut ${attributeDTO.name}.`
-            } else {
+            if (!newAttribute) {
                 throw new Error(`Error when adding attribut: ${attributeDTO.name}.`);
             }
+            return `Added new attribute ${attributeDTO.name}`
         } catch (error) {
             throw new HttpException({
                 status: HttpStatus.BAD_REQUEST,
-                error: `Error when adding attribut : ${attributeDTO.name} - ` + error,
+                error: `Error when adding attribut : ${attributeDTO.name} - ` + error.message,
             },
                 HttpStatus.BAD_REQUEST);
         }
