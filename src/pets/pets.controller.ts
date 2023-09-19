@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, ParseIntPipe, Query, Patch } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, ParseIntPipe, Query, Patch, Delete } from '@nestjs/common';
 import { PetsService } from './pets.service';
 import { CreatePetDTO, PetDTO, UpdatePetDTO } from './dto/pet.dto';
 import { Pet } from './entities/pet.entity';
@@ -39,11 +39,16 @@ export class PetsController {
 
     @Patch('adoptedPet/:petId')
     async getAdoptedPet(@Param('petId', ParseIntPipe) petId: number): Promise<string> {
-        return await this.petsService.setAvailable(petId)
+        return await this.petsService.setAvailable(petId);
     }
 
     @Patch('update/:petId')
-    async getUpdatePet(@Param('petId' , ParseIntPipe) petId : number, @Body() body : UpdatePetDTO) : Promise <string> {
+    async getUpdatePet(@Param('petId', ParseIntPipe) petId: number, @Body() body: UpdatePetDTO): Promise<string> {
         return await this.petsService.updatePet(petId, body);
+    }
+
+    @Delete('delete/:petId')
+    async getDeletePet(@Param('petId', ParseIntPipe) petId: number): Promise<string> {
+        return this.petsService.deletePet(petId);
     }
 }

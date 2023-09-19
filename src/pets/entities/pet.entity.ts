@@ -1,6 +1,7 @@
 import { City } from "src/city/entities/city.entity";
 import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, ManyToOne, CreateDateColumn, ManyToMany, JoinTable } from "typeorm";
 import { Attribute } from "../attributes/entities/attribute.entity";
+import { User } from "src/users/entities/user.entity";
 
 @Entity({ name: 'pets' })
 export class Pet {
@@ -46,6 +47,9 @@ export class Pet {
     @JoinTable({ name: 'pets_attributes' })
     attributes: Attribute[];
 
+    @ManyToMany(() => User, user => user.pets)
+    users : User[];
+    
     constructor(name: string, specie: string, sex: string, age: number, city: City, attributes: Attribute[], description: string, urlImg: string) {
         this.name = name;
         this.specie = specie;
