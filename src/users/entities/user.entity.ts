@@ -1,11 +1,15 @@
 import { City } from "src/city/entities/city.entity";
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, JoinColumn } from "typeorm";
+import { Pet } from "src/pets/entities/pet.entity";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, ManyToMany, JoinTable, CreateDateColumn } from "typeorm";
 
 @Entity({ name: 'users' })
 export class User {
 
     @PrimaryGeneratedColumn()
     id: number;
+
+    @CreateDateColumn()
+    creationDate: Date;
 
     @Column()
     fullname: string;
@@ -16,8 +20,8 @@ export class User {
     @Column({ unique: true })
     email: string;
 
-    @Column()
-    phoneNumber: number;
+    @Column({ unique: true, length: 10 })
+    phoneNumber: string;
 
     @Column()
     address: string;
@@ -28,17 +32,18 @@ export class User {
     @Column()
     livingPlace: string;
 
-    @Column()
-    interestedIn: number;
+    @ManyToMany(() => Pet, pet => pet.users)
+    @JoinTable({ name: 'interested_users' })
+    pets: Pet[];
 
     @Column({ name: 'fk_city_id', nullable: false })
     fk_city_id: number;
 
     @ManyToOne(() => City, city => city.users)
     @JoinColumn({ name: 'fk_city_id' })
-    public city: City;
+    city: City;
 
-    constructor(fullname: string, age: number, email: string, phoneNumber: number, address: string, city: City, hasPet: boolean, livingPlace: string, interestedIn: number) {
+    constructor(fullname: string, age: number, email: string, phoneNumber: string, address: string, city: City, hasPet: boolean, livingPlace: string, pets: Pet[]) {
         this.fullname = fullname;
         this.age = age;
         this.email = email;
@@ -47,7 +52,7 @@ export class User {
         this.city = city;
         this.hasPet = hasPet;
         this.livingPlace = livingPlace;
-        this.interestedIn = interestedIn;
+        this.pets = pets;
     }
     public getFullname(): string {
         return this.fullname;
@@ -55,10 +60,13 @@ export class User {
     public getAge(): number {
         return this.age
     }
+    public getZipCode(): City {
+        return this.city
+    }
     public getEmail(): string {
         return this.email;
     }
-    public getPhoneNumber(): number {
+    public getPhoneNumber(): string {
         return this.phoneNumber;
     }
     public getAddress(): string {
@@ -70,11 +78,8 @@ export class User {
     public getLivingPlace(): string {
         return this.livingPlace;
     }
-    public getInterestedIn(): number {
-        return this.interestedIn;
-    }
-    public getZipCode(): City {
-        return this.city
+    public getInterestedPets(): Pet[] {
+        return this.pets;
     }
     public setAge(newAge: number): void {
         this.age = newAge;
@@ -82,7 +87,7 @@ export class User {
     public setEmail(newEmail: string): void {
         this.email = newEmail;
     }
-    public setPhoneNumber(newPhoneNumber: number): void {
+    public setPhoneNumber(newPhoneNumber: string): void {
         this.phoneNumber = newPhoneNumber;
     }
     public setAddress(newAddress: string): void {
@@ -91,7 +96,7 @@ export class User {
     public setLivingPlace(newLivingPlace: string): void {
         this.livingPlace = newLivingPlace;
     }
-    public setInterestedIn(newPet: number): void {
-        this.interestedIn = newPet;
+    public setInterestedIn(newPets : Pet[]) : void {
+        this.pets = newPets;
     }
 }
