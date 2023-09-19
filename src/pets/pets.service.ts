@@ -5,6 +5,7 @@ import { FindManyOptions, FindOneOptions, Repository } from 'typeorm';
 import { CreatePetDTO, PetDTO, UpdatePetDTO } from './dto/pet.dto';
 import { City } from 'src/city/entities/city.entity';
 import { Attribute } from './attributes/entities/attribute.entity';
+import { checkEmptyValues, checkValues } from 'src/Services/valuesValidation';
 
 @Injectable()
 export class PetsService {
@@ -18,20 +19,18 @@ export class PetsService {
     private readonly attributRepository: Repository<Attribute>
   ) { }
 
+  validValues = ['name', 'specie', 'sex', 'age', 'zipCode', 'attributes', 'description', 'urlImg'];
   // Function to add a new pet
   async addPet(petDTO: CreatePetDTO): Promise<string> {
+
     try {
       // Check if required values are missing
-      if (!this.checkValues(petDTO)) {
-        throw new Error('Required fields missing: name, age, sex, species, description, attributes, image url.');
+      if (!checkValues(petDTO, this.validValues)) {
+        throw new Error('Required fields missing: name, specie, age, zipCode, description, attributes, urlImg.');
       };
       // Check if empty values are not accepted
-      if (!this.checkEmptyValues(petDTO)) {
+      if (!checkEmptyValues(petDTO)) {
         throw new Error('Empty fields are not accepted.');
-      }
-      // Check if valid keys are used
-      if (!this.checkValidKeys(petDTO)) {
-        throw new Error(`Invalid key for the pet. Please enter name, sex, age, description, image url, zip code or species.`)
       }
       // Verify the city with its zip code
       const criterion: FindOneOptions = { where: { zipCode: Number(petDTO.zipCode) } };
@@ -243,20 +242,22 @@ export class PetsService {
         pet.setCity(city);
       }
 
-      if (!this.checkEmptyValues(body)) {
+      if (!checkEmptyValues(body)) {
         throw new Error('Empty fields are not accepted.');
       }
 
-      if (!this.checkValidKeys(body)) {
+      if (!checkValues(body, this.validValues)) {
         throw new Error(`Invalid key for the pet. Please enter name, sex, age, description, image url, zip code or species.`)
       }
 
-      pet.setName(body.name);
-      pet.setAge(body.age);
-      pet.setSex(body.sex);
-      pet.setSpecie(body.specie);
-      pet.setDescription(body.description);
-      pet.setUrlImg(body.urlImg);
+      pet.setName(body.name ? body.name : pet.getName());
+      pet.setAge(body.age ? body.age : pet.getAge());
+      pet.setSex(body.sex ? body.sex : pet.getSex());
+      pet.setSpecie(body.specie ? body.specie : pet.getSpecie());
+      pet.setDescription(body.description ? body.description : pet.getDescription());
+      pet.setUrlImg(body.urlImg ? body.urlImg : pet.urlImg);
+
+      await this.petRepository.save(pet);
       return `The pet ${pet.name} was updated.`
 
     } catch (error) {
@@ -267,49 +268,30 @@ export class PetsService {
     }
   }
 
-  // Check that the properties to create a pet exist
-  checkValues(body) {
-    if (!body.name ||
-      !body.age ||
-      !body.sex ||
-      !body.description ||
-      !body.urlImg ||
-      !body.specie ||
-      (!body.attributes &&
-        body.attributes.length === 0)) {
-      return false;
-    }
-    return true;
-  }
+  async deletePet(petId: number): Promise<string> {
+    try {
+      const citerion: FindOneOptions = { where: { id: petId } };
+      const petToDelete: Pet = await this.petRepository.findOne(citerion);
 
-  // Check that the properties' values are not empty
-  checkEmptyValues(body) {
-    if (body.name === "" ||
-      body.age === null ||
-      body.description === "" ||
-      body.urlImg === "" ||
-      body.sex === "" ||
-      body.specie === "") {
-      return false;
-    }
-    return true;
-  }
-
-  // Check that the properties are those required
-  checkValidKeys(body: Object) {
-    const validKeys = ['name', 'age', 'zipCode', 'sex', 'description', 'urlImg', 'specie', 'attributes'];
-    const keys = Object.keys(body);
-
-    for (const key of keys) {
-      if (validKeys.includes(key)) {
-        return true;
+      if (!petToDelete) {
+        throw new Error(`There is no pet with ID ${petId}.`);
       }
-    }
-    return false;
-  }
 
+      await this.petRepository.remove(petToDelete);
+      return `The pet with ID ${petId} was deleted.`
+
+    } catch (error) {
+      throw new HttpException({
+        status: HttpStatus.BAD_REQUEST,
+        error: 'Pet capture error - ' + error.message,
+      }, HttpStatus.BAD_REQUEST);
+    }
+  }
   // Function to take, create, and assign attributes to the pet
   async handleAttributes(attributes: string[]): Promise<Attribute[]> {
+    if (attributes.length === 0) {
+      throw new Error(`Enter an attribute for the pet.`);
+    }
     try {
       const attributesCriteria: FindManyOptions = { where: attributes.map(attributeName => ({ name: attributeName })) }
       const existingAttributes = await this.attributRepository.find(attributesCriteria);

@@ -1,32 +1,34 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe } from '@nestjs/common';
 import { UsersService } from './users.service';
+import { CreateUserDTO } from './dto/user.dto';
+import { User } from './entities/user.entity';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) { }
 
-  @Post()
-  create(@Body() createUserDto) {
-    return this.usersService.create(createUserDto);
+  @Post('addUser')
+  async getAddUser(@Body() userDTO: CreateUserDTO): Promise<string> {
+    return await this.usersService.addUser(userDTO);
   }
 
-  @Get()
-  findAll() {
-    return this.usersService.findAll();
+  @Get('all')
+  async getAllUsers(): Promise<User[]> {
+    return await this.usersService.allUsers();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(+id);
+  @Get(':userId')
+  async getUserById(@Param('userId', ParseIntPipe) userId: number): Promise<User> {
+    return this.usersService.getUserById(userId);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
+  @Delete('delete/:userEmail')
+  async getDeleteUser(@Param('userEmail') userEmail: string): Promise<string> {
+    return await this.usersService.deleteUser(userEmail);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(+id);
+  @Delete('removePet/:userEmail/:petId')
+  async getDeletePet(@Param('userEmail') userEmail : string, @Param('petId', ParseIntPipe) petId : number) : Promise <string> {
+    return this.usersService.removePet(userEmail, petId);
   }
 }
