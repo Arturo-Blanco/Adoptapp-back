@@ -27,6 +27,7 @@ export class PetsService {
       // Check if required values are missing
       if (!checkValues(petDTO, this.validValues)) {
         throw new Error('Required fields missing: name, specie, age, zipCode, description, attributes, urlImg.');
+
       };
       // Check if empty values are not accepted
       if (!checkEmptyValues(petDTO)) {
@@ -39,10 +40,10 @@ export class PetsService {
       if (!city) {
         throw new Error(`There is no city with zip code ${petDTO.zipCode}.`);
       }
-      // Map and create attributes for the pet
-      const petAttributes = await this.handleAttributes(petDTO.attributes);
       // Create a new pet with the provided arguments
-      const newPet: Pet = new Pet(petDTO.name, petDTO.specie, petDTO.sex, petDTO.age, city, petAttributes, petDTO.description, petDTO.urlImg);
+      const newPet: Pet = new Pet(petDTO.name, petDTO.specie, petDTO.sex, petDTO.age, petDTO.description, petDTO.urlImg);
+      newPet.attributes = await this.handleAttributes(petDTO.attributes);
+      newPet.city = city;
 
       if (!newPet) {
         throw new Error(`Error adding pet ${petDTO.name}.`);
@@ -233,7 +234,7 @@ export class PetsService {
       }
 
       if (body.attributes && body.attributes.length > 0) {
-        pet.setAttributes(await this.handleAttributes(body.attributes));
+        // pet.setAttributes(await this.handleAttributes(body.attributes));
       }
 
       if (body.zipCode) {
@@ -293,9 +294,9 @@ export class PetsService {
       throw new Error(`Enter an attribute for the pet.`);
     }
     try {
-      const attributesCriteria: FindManyOptions = { where: attributes.map(attributeName => ({ name: attributeName })) }
-      const existingAttributes = await this.attributRepository.find(attributesCriteria);
 
+      const attributesCriteria: FindManyOptions = { where: attributes.map(name => ({ name: name })) };
+      const existingAttributes = await this.attributRepository.find(attributesCriteria);
       const attributeToCreate = attributes.filter(attribute => !existingAttributes.some(existingAttributes => existingAttributes.name.toLowerCase() === attribute.toLowerCase()));
 
       const newAttributes = await Promise.all(
@@ -304,7 +305,9 @@ export class PetsService {
           return await this.attributRepository.save(newAttribute);
         })
       );
+      
       const petAttributes = [...existingAttributes, ...newAttributes];
+      
       return petAttributes;
     } catch (error) {
       throw new error(`Error getting attributes - ` + error.message);

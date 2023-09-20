@@ -36,8 +36,8 @@ export class Pet {
     @Column({ type: 'int', default: 0 })
     interested: number;
 
-    @Column({ name: 'fk_city_id', nullable: false })
-    fk_city_id: number;
+    // @Column({ name: 'fk_city_id', nullable: false })
+    // fk_city_id: number;
 
     @ManyToOne(() => City, city => city.pets)
     @JoinColumn({ name: 'fk_city_id' })
@@ -50,13 +50,11 @@ export class Pet {
     @ManyToMany(() => User, user => user.pets)
     users : User[];
     
-    constructor(name: string, specie: string, sex: string, age: number, city: City, attributes: Attribute[], description: string, urlImg: string) {
+    constructor(name: string, specie: string, sex: string, age: number,description: string, urlImg: string) {
         this.name = name;
         this.specie = specie;
         this.sex = sex;
         this.age = age;
-        this.city = city;
-        this.attributes = attributes;
         this.description = description;
         this.urlImg = urlImg;
     }

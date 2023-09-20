@@ -1,3 +1,5 @@
+import { Pet } from "src/pets/entities/pet.entity";
+
 export class CreateUserDTO {
     readonly fullname: string;
     readonly age: number;
@@ -7,5 +9,5 @@ export class CreateUserDTO {
     readonly zipCode: number;
     readonly hasPet: boolean;
     readonly livingPlace: string;
-    readonly interestedIn: number[];
+    readonly interestedIn: number;
 }

@@ -39,45 +39,43 @@ export class UsersService {
         throw new Error(`There is no city with zip code ${userDTO.zipCode}.`);
       }
 
-      if (userDTO.interestedIn.length === 0) {
+      if (userDTO.interestedIn === null) {
         throw new Error('No pet information requested.');
       }
 
-      const petCriteria: FindOneOptions = { where: { id: userDTO.interestedIn[0] } };
+      const petCriteria: FindOneOptions = { where: { id: userDTO.interestedIn} };
       const existingPet = await this.petRepository.findOne(petCriteria);
 
       if (!existingPet) {
-        throw new Error(`There is no pet with ID ${userDTO.interestedIn[0]}.`);
+        throw new Error(`There is no pet with ID ${userDTO.interestedIn}.`);
       }
 
       const emailCriteria: FindOneOptions = { where: { email: userDTO.email }, relations: ['pets'] };
       const user: User = await this.userRepository.findOne(emailCriteria);
-
+      // If user does not exist yet, is created
       if (!user) {
 
-        const petCriteria: FindManyOptions = { where: { id: userDTO.interestedIn[0] } };
-        const requestedPet = await this.petRepository.find(petCriteria);
-
-        const newUser: User = new User(userDTO.fullname, userDTO.age, userDTO.email, userDTO.phoneNumber, userDTO.address, city, userDTO.hasPet, userDTO.livingPlace, requestedPet);
+        const newUser: User = new User(userDTO.fullname, userDTO.age, userDTO.email, userDTO.phoneNumber, userDTO.address, userDTO.hasPet, userDTO.livingPlace);
 
         if (!newUser) {
           throw new Error(`Error adding new user.`);
         };
-
+          newUser.city = city;
+          newUser.pets = [existingPet];
         await this.userRepository.save(newUser);
         return `User ${newUser.getFullname()} was added.`
       }
-
+      // if user exist, is verified if does not have more than 3 requested pet
       if (user && user.pets.length > 2) {
         throw new Error(`Maximum adoption requests reached.`);
       } else {
 
         const petRequested = user.pets.map(pet => pet.id);
 
-        if (petRequested.includes(userDTO.interestedIn[0])) {
+        if (petRequested.includes(userDTO.interestedIn)) {
           throw new Error('You are already registered to adopt this pet.');
         } else {
-          petRequested.push(userDTO.interestedIn[0]);
+          petRequested.push(userDTO.interestedIn);
         }
 
         const petCriteria: FindManyOptions = { where: petRequested.map(petId => ({ id: petId })) };
@@ -85,7 +83,7 @@ export class UsersService {
 
         user.setInterestedIn(requestedPet);
         await this.userRepository.save(user);
-        return `User ${userDTO.fullname} was added.`
+        return `${user.getFullname()} is interested in adopting another pet.`
       }
     } catch (error) {
       throw new HttpException({
@@ -94,7 +92,7 @@ export class UsersService {
       }, HttpStatus.BAD_REQUEST);
     }
   }
-
+  // Function to get all users with their relasionship
   async allUsers(): Promise<User[]> {
     try {
       const criterion: FindManyOptions = { relations: ['pets'] };
@@ -111,7 +109,7 @@ export class UsersService {
       }, HttpStatus.BAD_REQUEST);
     }
   }
-
+  //Function to get user by ID
   async getUserById(userId: number): Promise<User> {
     try {
       const criterion: FindOneOptions = { relations: ['pets'], where: { id: userId } };
@@ -128,7 +126,7 @@ export class UsersService {
       }, HttpStatus.BAD_REQUEST);
     }
   }
-
+  // Function to delete user by email
   async deleteUser(userEmail: string): Promise<string> {
     try {
       const criterion: FindOneOptions = { where: { email: userEmail } };
@@ -150,7 +148,7 @@ export class UsersService {
       }, HttpStatus.BAD_REQUEST);
     }
   }
-
+  //Function to remove a requested pet
   async removePet(userEmail: string, petId: number): Promise<string> {
     try {
       const criterion: FindOneOptions = { where: { email: userEmail }, relations: ['pets'] };
@@ -173,7 +171,7 @@ export class UsersService {
         const petCriteria: FindManyOptions = { where: requestedPet.map(petId => ({ id: petId })) };
         const newPets = await this.petRepository.find(petCriteria);
         user.setInterestedIn(newPets);
-
+        // If the user does not have a requested pet, an empty array is assigned
         if (requestedPet.length === 0) {
           user.pets = [];
         }

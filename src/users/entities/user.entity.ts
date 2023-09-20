@@ -43,16 +43,14 @@ export class User {
     @JoinColumn({ name: 'fk_city_id' })
     city: City;
 
-    constructor(fullname: string, age: number, email: string, phoneNumber: string, address: string, city: City, hasPet: boolean, livingPlace: string, pets: Pet[]) {
+    constructor(fullname: string, age: number, email: string, phoneNumber: string, address: string, hasPet: boolean, livingPlace: string) {
         this.fullname = fullname;
         this.age = age;
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.address = address;
-        this.city = city;
         this.hasPet = hasPet;
         this.livingPlace = livingPlace;
-        this.pets = pets;
     }
     public getFullname(): string {
         return this.fullname;
