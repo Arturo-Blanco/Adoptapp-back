@@ -19,11 +19,8 @@ export class CityService {
       if (!newCity) {
         throw new Error(`Error adding the city: ${city.name}.`);
       }
-      else {
-        return `Added the city: ${city.name}.`
-      }
+      return `Added the city: ${city.name}.`
     } catch (error) {
-      // Handling exceptions and returning appropriate HTTP responses
       throw new HttpException({
         status: HttpStatus.CONFLICT,
         error: `Error adding new city -` + error,
@@ -39,11 +36,8 @@ export class CityService {
       if (!cities) {
         throw new Error('Error getting cities.');
       }
-      else {
-        return cities;
-      }
+      return cities;
     } catch (error) {
-      // Handling exceptions and returning appropriate HTTP responses
       throw new HttpException({
         status: HttpStatus.BAD_REQUEST,
         error: `Error getting cities -` + error.message,
@@ -52,6 +46,24 @@ export class CityService {
     }
   }
 
+  async cityByZip(zipCode: number): Promise<City> {
+    try {
+      const criterion: FindOneOptions = { where: { zipCode: zipCode } };
+      const city: City = await this.cityRepository.findOne(criterion);
+
+      if (!city) {
+        throw new Error(`There is no city with zip code ${zipCode}.`);
+      }
+      return city;
+
+    } catch (error) {
+      throw new HttpException({
+        status: HttpStatus.BAD_REQUEST,
+        error: `Error getting city - ` + error.message,
+      },
+        HttpStatus.BAD_REQUEST);
+    }
+  }
   // Function to update a city's information
   async updateCity(cityId: number, data: UpdateCityDTO): Promise<string> {
     try {
@@ -76,7 +88,6 @@ export class CityService {
       return `The city was modified.`
 
     } catch (error) {
-      // Handling exceptions and returning appropriate HTTP responses
       throw new HttpException({
         status: HttpStatus.CONFLICT,
         error: `Error updating city - ` + error.message,
