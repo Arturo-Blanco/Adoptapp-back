@@ -37,9 +37,9 @@ export class PetsController {
         return await this.petsService.addInterested(petId);
     }
 
-    @Patch('adoptedPet/:petId')
-    async getAdoptedPet(@Param('petId', ParseIntPipe) petId: number): Promise<string> {
-        return await this.petsService.setAvailable(petId);
+    @Patch('adoptedPet/:petId/:userId/:cityId')
+    async getAdoptedPet(@Param('petId', ParseIntPipe) petId: number, @Param('userId', ParseIntPipe) userId: number, @Param('cityId', ParseIntPipe) cityId: number): Promise<string> {
+        return await this.petsService.wasAdopted(petId, userId, cityId);
     }
 
     @Patch('update/:petId')
