@@ -1,7 +1,8 @@
 import { City } from "src/city/entities/city.entity";
-import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, ManyToOne, CreateDateColumn, ManyToMany, JoinTable } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, ManyToOne, CreateDateColumn, ManyToMany, JoinTable, OneToMany } from "typeorm";
 import { Attribute } from "../attributes/entities/attribute.entity";
 import { User } from "src/users/entities/user.entity";
+import { Adoption } from "src/adoptions/entities/adoptions.entity";
 
 @Entity({ name: 'pets' })
 export class Pet {
@@ -10,7 +11,7 @@ export class Pet {
     id: number;
 
     @CreateDateColumn()
-    creationDate: Date;
+    creation_date: Date;
 
     @Column()
     name: string;
@@ -28,7 +29,7 @@ export class Pet {
     description: string;
 
     @Column()
-    urlImg: string;
+    url_img: string;
 
     @Column({ type: 'boolean', default: true })
     available: boolean;
@@ -48,17 +49,18 @@ export class Pet {
     attributes: Attribute[];
 
     @ManyToMany(() => User, user => user.pets)
-    users : User[];
+    users: User[];
+
+    @OneToMany(() => Adoption, adoption => adoption.pet)
+    adoption : Adoption;
     
-    constructor(name: string, specie: string, sex: string, age: number, city: City, attributes: Attribute[], description: string, urlImg: string) {
+    constructor(name: string, specie: string, sex: string, age: number, description: string, urlImg: string) {
         this.name = name;
         this.specie = specie;
         this.sex = sex;
         this.age = age;
-        this.city = city;
-        this.attributes = attributes;
         this.description = description;
-        this.urlImg = urlImg;
+        this.url_img = urlImg;
     }
     public getName(): string {
         return this.name;
@@ -76,7 +78,7 @@ export class Pet {
         return this.description;
     }
     public getUrlImg(): string {
-        return this.urlImg;
+        return this.url_img;
     }
     public getInterested(): number {
         return this.interested;
@@ -87,16 +89,16 @@ export class Pet {
     public setAge(newAge: number): void {
         this.age = newAge;
     }
-    public setSex(newSex : string) : void {
+    public setSex(newSex: string): void {
         this.sex = newSex;
     }
-    public setSpecie(newSpecie : string) : void {
+    public setSpecie(newSpecie: string): void {
         this.specie = newSpecie;
     }
     public setAttributes(newAttributes: Attribute[]): void {
         this.attributes = newAttributes;
     }
-    public setCity(newZipCode : City) : void {
+    public setCity(newZipCode: City): void {
         this.city = newZipCode;
     }
     public setDescription(newDescription: string): void {
@@ -106,7 +108,7 @@ export class Pet {
         this.interested += 1;
     }
     public setUrlImg(newUrlImg: string): void {
-        this.urlImg = newUrlImg;
+        this.url_img = newUrlImg;
     }
     public setAvailable(): void {
         this.available = false;

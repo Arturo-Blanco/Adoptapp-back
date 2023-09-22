@@ -1,3 +1,4 @@
+import { Adoption } from "src/adoptions/entities/adoptions.entity";
 import { Pet } from "src/pets/entities/pet.entity";
 import { User } from "src/users/entities/user.entity";
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany, JoinColumn } from "typeorm";
@@ -12,7 +13,7 @@ export class City {
     name: string;
 
     @Column({ unique: true })
-    zipCode: number
+    zip_code: number
 
     @OneToMany(() => Pet, pet => pet.city)
     pets: Pet[];
@@ -20,21 +21,24 @@ export class City {
     @OneToMany(() => User, user => user.city)
     users: User[];
 
+    @OneToMany(() => Adoption, adoption => adoption.city)
+    adoption : Adoption;
+
     constructor(name: string, zipCode: number) {
         this.name = name;
-        this.zipCode = zipCode;
+        this.zip_code = zipCode;
     }
 
     public getName(): string {
         return this.name;
     }
     public getZipCode(): number {
-        return this.zipCode;
+        return this.zip_code;
     }
     public setName(newName: string): void {
         this.name = newName;
     }
     public setZipCode(newZipCode: number): void {
-        this.zipCode = newZipCode;
+        this.zip_code = newZipCode;
     }
 }

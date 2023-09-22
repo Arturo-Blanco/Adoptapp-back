@@ -19,99 +19,106 @@ export class UsersService {
     private readonly petRepository: Repository<Pet>
   ) { }
 
-  validValues = ['fullname', 'age', 'email', 'phoneNumber', 'address', 'zipCode', 'hasPet', 'livingPlace', 'interestedIn'];
+  validValues = ['name', 'surname', 'age', 'email', 'phoneNumber', 'address', 'zipCode', 'hasPet', 'livingPlace'];
 
-  async addUser(userDTO: CreateUserDTO): Promise<string> {
+  async addUser(userDTO: CreateUserDTO, petId: number): Promise<{ status: number, message: string }> {
+    const { name, surname, age, email, phoneNumber, address, zipCode, hasPet, livingPlace} = userDTO;
     try {
       // Check if required values are missing
       if (!checkValues(userDTO, this.validValues)) {
-        throw new Error('Required fields missing: fullname, age, email, phoneNumber, address, zipCode, hasPet, livingPlace, interestedIn.');
+        throw new Error('Required fields missing: name, surname, age, email, phoneNumber, address, zipCode, hasPet, livingPlace.');
       };
       // Check if empty values are not accepted
       if (!checkEmptyValues(userDTO)) {
         throw new Error('Empty fields are not accepted.');
       }
       // Verify the city with its zip code
-      const cityCriteria: FindOneOptions = { where: { zipCode: Number(userDTO.zipCode) } };
+      const cityCriteria: FindOneOptions = { where: { zip_code: Number(zipCode) } };
       const city = await this.cityRepository.findOne(cityCriteria);
       // If the city doesn't exist, throw an error
       if (!city) {
-        throw new Error(`There is no city with zip code ${userDTO.zipCode}.`);
+        throw new Error(`There is no city with zip code ${zipCode}.`);
       }
 
-      if (userDTO.interestedIn.length === 0) {
+      if (petId === null) {
         throw new Error('No pet information requested.');
       }
 
-      const petCriteria: FindOneOptions = { where: { id: userDTO.interestedIn[0] } };
+      const petCriteria: FindOneOptions = { where: { id: petId } };
       const existingPet = await this.petRepository.findOne(petCriteria);
 
       if (!existingPet) {
-        throw new Error(`There is no pet with ID ${userDTO.interestedIn[0]}.`);
+        throw new Error(`There is no pet with ID ${petId}.`);
       }
 
-      const emailCriteria: FindOneOptions = { where: { email: userDTO.email }, relations: ['pets'] };
+      const emailCriteria: FindOneOptions = { where: { email: email }, relations: ['pets'] };
       const user: User = await this.userRepository.findOne(emailCriteria);
-
+      // If user does not exist yet, is created
       if (!user) {
 
-        const petCriteria: FindManyOptions = { where: { id: userDTO.interestedIn[0] } };
-        const requestedPet = await this.petRepository.find(petCriteria);
-
-        const newUser: User = new User(userDTO.fullname, userDTO.age, userDTO.email, userDTO.phoneNumber, userDTO.address, city, userDTO.hasPet, userDTO.livingPlace, requestedPet);
+        const newUser: User = new User(name, surname, age, email, phoneNumber, address, hasPet, livingPlace);
 
         if (!newUser) {
-          throw new Error(`Error adding new user.`);
+          throw new Error(`Could not get user data.`);
         };
+        newUser.city = city;
+        newUser.pets = [existingPet];
+        existingPet.setInterested();
 
         await this.userRepository.save(newUser);
-        return `User ${newUser.getFullname()} was added.`
+        await this.petRepository.save(existingPet);
+        return { status: HttpStatus.CREATED, message: `User ${newUser.getSurname()} ${newUser.getName()} was added.` };
       }
-
+      // if user exist, is verified if does not have more than 3 requested pet
       if (user && user.pets.length > 2) {
-        throw new Error(`Maximum adoption requests reached.`);
+        return { status: HttpStatus.BAD_REQUEST, message: 'Maximum adoption requests reached.' };
       } else {
 
         const petRequested = user.pets.map(pet => pet.id);
 
-        if (petRequested.includes(userDTO.interestedIn[0])) {
-          throw new Error('You are already registered to adopt this pet.');
+        if (petRequested.includes(petId)) {
+          return { status: HttpStatus.BAD_REQUEST, message: 'You are already registered to adopt this pet.' };
         } else {
-          petRequested.push(userDTO.interestedIn[0]);
+          petRequested.push(petId);
         }
 
         const petCriteria: FindManyOptions = { where: petRequested.map(petId => ({ id: petId })) };
         const requestedPet = await this.petRepository.find(petCriteria);
 
         user.setInterestedIn(requestedPet);
+        existingPet.setInterested();
+
         await this.userRepository.save(user);
-        return `User ${userDTO.fullname} was added.`
+        await this.petRepository.save(existingPet);
+        return { status: HttpStatus.OK, message: `${user.getSurname()} ${user.getName()} is interested in adopting another pet.` }
       }
     } catch (error) {
       throw new HttpException({
-        status: HttpStatus.BAD_REQUEST,
-        error: 'Error adding new user - ' + error.message
-      }, HttpStatus.BAD_REQUEST);
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+        error: 'Error adding new user',
+        message: error.message,
+      }, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
-
+  // Function to get all users with their relasionship
   async allUsers(): Promise<User[]> {
     try {
       const criterion: FindManyOptions = { relations: ['pets'] };
       const allUsers: User[] = await this.userRepository.find(criterion);
 
       if (!allUsers) {
-        throw new Error(`Error getting users.`);
+        throw new Error(`Could not get user data.`);
       }
       return allUsers;
     } catch (error) {
       throw new HttpException({
         status: HttpStatus.BAD_REQUEST,
-        error: 'Error getting users - ' + error.message
+        error: 'Error getting users',
+        message: error.message
       }, HttpStatus.BAD_REQUEST);
     }
   }
-
+  //Function to get user by ID
   async getUserById(userId: number): Promise<User> {
     try {
       const criterion: FindOneOptions = { relations: ['pets'], where: { id: userId } };
@@ -124,11 +131,12 @@ export class UsersService {
     } catch (error) {
       throw new HttpException({
         status: HttpStatus.BAD_REQUEST,
-        error: 'Error getting user - ' + error.message
+        error: 'Error getting user',
+        message: error.message,
       }, HttpStatus.BAD_REQUEST);
     }
   }
-
+  // Function to delete user by email
   async deleteUser(userEmail: string): Promise<string> {
     try {
       const criterion: FindOneOptions = { where: { email: userEmail } };
@@ -138,7 +146,7 @@ export class UsersService {
         throw new Error(`The user does not exist in the database.`);
       }
 
-      const userName = user.getFullname();
+      const userName = `${user.getSurname()} ${user.getName()}`;
       await this.userRepository.remove(user);
 
       return `${userName} was deleted from database.`;
@@ -146,11 +154,12 @@ export class UsersService {
     } catch (error) {
       throw new HttpException({
         status: HttpStatus.BAD_REQUEST,
-        error: 'Error getting user - ' + error.message
+        error: 'Error getting user',
+        message: error.message,
       }, HttpStatus.BAD_REQUEST);
     }
   }
-
+  //Function to remove a requested pet
   async removePet(userEmail: string, petId: number): Promise<string> {
     try {
       const criterion: FindOneOptions = { where: { email: userEmail }, relations: ['pets'] };
@@ -163,7 +172,7 @@ export class UsersService {
       const requestedPet = user.pets.map(pet => pet.id);
 
       if (!requestedPet.includes(petId)) {
-        throw new Error(`The user ${user.getFullname()} does not have a registered pet with ID ${petId}.`);
+        throw new Error(`The user ${user.getSurname()} ${user.getName()} does not have a registered pet with ID ${petId}.`);
 
       } else {
 
@@ -173,18 +182,19 @@ export class UsersService {
         const petCriteria: FindManyOptions = { where: requestedPet.map(petId => ({ id: petId })) };
         const newPets = await this.petRepository.find(petCriteria);
         user.setInterestedIn(newPets);
-
+        // If the user does not have a requested pet, an empty array is assigned
         if (requestedPet.length === 0) {
           user.pets = [];
         }
 
         await this.userRepository.save(user);
-        return `The pet with id ${petId} was remove from user ${user.getFullname()}.`
+        return `The pet with id ${petId} was remove from user ${user.getSurname()} ${user.getName()}.`
       }
     } catch (error) {
       throw new HttpException({
         status: HttpStatus.CONFLICT,
-        error: 'Error getting user - ' + error.message
+        error: 'Error getting user',
+        message: error.message,
       }, HttpStatus.CONFLICT);
     }
   }

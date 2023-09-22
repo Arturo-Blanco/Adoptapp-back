@@ -1,6 +1,7 @@
+import { Adoption } from "src/adoptions/entities/adoptions.entity";
 import { City } from "src/city/entities/city.entity";
 import { Pet } from "src/pets/entities/pet.entity";
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, ManyToMany, JoinTable, CreateDateColumn } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, ManyToMany, JoinTable, CreateDateColumn, OneToMany } from "typeorm";
 
 @Entity({ name: 'users' })
 export class User {
@@ -9,10 +10,13 @@ export class User {
     id: number;
 
     @CreateDateColumn()
-    creationDate: Date;
+    creation_date: Date;
 
     @Column()
-    fullname: string;
+    name: string;
+
+    @Column()
+    surname: string;
 
     @Column()
     age: number;
@@ -20,17 +24,17 @@ export class User {
     @Column({ unique: true })
     email: string;
 
-    @Column({ unique: true, length: 10 })
-    phoneNumber: string;
+    @Column({ unique: true, length: 15 })
+    phone_number: string;
 
     @Column()
     address: string;
 
     @Column()
-    hasPet: boolean;
+    has_pet: boolean;
 
     @Column()
-    livingPlace: string;
+    living_place: string;
 
     @ManyToMany(() => Pet, pet => pet.users)
     @JoinTable({ name: 'interested_users' })
@@ -43,19 +47,24 @@ export class User {
     @JoinColumn({ name: 'fk_city_id' })
     city: City;
 
-    constructor(fullname: string, age: number, email: string, phoneNumber: string, address: string, city: City, hasPet: boolean, livingPlace: string, pets: Pet[]) {
-        this.fullname = fullname;
+    @OneToMany(() => Adoption, adoption => adoption.user)
+    adoption: Adoption;
+
+    constructor(name: string, surname: string, age: number, email: string, phoneNumber: string, address: string, hasPet: boolean, livingPlace: string) {
+        this.name = name;
+        this.surname = surname;
         this.age = age;
         this.email = email;
-        this.phoneNumber = phoneNumber;
+        this.phone_number = phoneNumber;
         this.address = address;
-        this.city = city;
-        this.hasPet = hasPet;
-        this.livingPlace = livingPlace;
-        this.pets = pets;
+        this.has_pet = hasPet;
+        this.living_place = livingPlace;
     }
-    public getFullname(): string {
-        return this.fullname;
+    public getName(): string {
+        return this.name;
+    }
+    public getSurname() : string {
+        return this.surname;
     }
     public getAge(): number {
         return this.age
@@ -67,16 +76,16 @@ export class User {
         return this.email;
     }
     public getPhoneNumber(): string {
-        return this.phoneNumber;
+        return this.phone_number;
     }
     public getAddress(): string {
         return this.address;
     }
     public getHasPet(): boolean {
-        return this.hasPet;
+        return this.has_pet;
     }
     public getLivingPlace(): string {
-        return this.livingPlace;
+        return this.living_place;
     }
     public getInterestedPets(): Pet[] {
         return this.pets;
@@ -88,15 +97,15 @@ export class User {
         this.email = newEmail;
     }
     public setPhoneNumber(newPhoneNumber: string): void {
-        this.phoneNumber = newPhoneNumber;
+        this.phone_number = newPhoneNumber;
     }
     public setAddress(newAddress: string): void {
         this.address = newAddress;
     }
     public setLivingPlace(newLivingPlace: string): void {
-        this.livingPlace = newLivingPlace;
+        this.living_place = newLivingPlace;
     }
-    public setInterestedIn(newPets : Pet[]) : void {
+    public setInterestedIn(newPets: Pet[]): void {
         this.pets = newPets;
     }
 }

@@ -1,3 +1,4 @@
+
 export class CreatePetDTO {
     readonly name: string;
     readonly specie: string;
