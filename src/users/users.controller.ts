@@ -7,9 +7,9 @@ import { User } from './entities/user.entity';
 export class UsersController {
   constructor(private readonly usersService: UsersService) { }
 
-  @Post('addUser')
-  async getAddUser(@Body() userDTO: CreateUserDTO): Promise<string> {
-    return await this.usersService.addUser(userDTO);
+  @Post('addUser/:petId')
+  async getAddUser(@Body() userDTO: CreateUserDTO, @Param('petId', ParseIntPipe) petId: number): Promise<{ status: number, message: string }> {
+    return await this.usersService.addUser(userDTO, petId);
   }
 
   @Get('all')
@@ -28,7 +28,7 @@ export class UsersController {
   }
 
   @Delete('removePet/:userEmail/:petId')
-  async getDeletePet(@Param('userEmail') userEmail : string, @Param('petId', ParseIntPipe) petId : number) : Promise <string> {
+  async getDeletePet(@Param('userEmail') userEmail: string, @Param('petId', ParseIntPipe) petId: number): Promise<string> {
     return this.usersService.removePet(userEmail, petId);
   }
 }

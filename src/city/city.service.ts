@@ -48,7 +48,7 @@ export class CityService {
 
   async cityByZip(zipCode: number): Promise<City> {
     try {
-      const criterion: FindOneOptions = { where: { zipCode: zipCode } };
+      const criterion: FindOneOptions = { where: { zip_code: zipCode } };
       const city: City = await this.cityRepository.findOne(criterion);
 
       if (!city) {
