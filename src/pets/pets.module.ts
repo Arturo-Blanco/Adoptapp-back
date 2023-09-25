@@ -6,7 +6,7 @@ import { Pet } from './entities/pet.entity';
 import { City } from 'src/city/entities/city.entity';
 import { User } from 'src/users/entities/user.entity';
 import { Attribute } from './attributes/entities/attribute.entity';
-import { Adoption } from 'src/adoptions/entities/adoptions.entity';
+import { Adoption } from 'src/Services/adoptions/entities/adoptions.entity';
 
 @Module({
   imports: [

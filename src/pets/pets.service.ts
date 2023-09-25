@@ -7,7 +7,7 @@ import { City } from 'src/city/entities/city.entity';
 import { Attribute } from './attributes/entities/attribute.entity';
 import { checkEmptyValues, checkValues } from 'src/Services/valuesValidation';
 import { User } from 'src/users/entities/user.entity';
-import { Adoption } from 'src/adoptions/entities/adoptions.entity';
+import { Adoption } from 'src/Services/adoptions/entities/adoptions.entity';
 
 @Injectable()
 export class PetsService {

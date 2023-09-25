@@ -1,4 +1,4 @@
-import { Adoption } from "src/adoptions/entities/adoptions.entity";
+import { Adoption } from "src/Services/adoptions/entities/adoptions.entity";
 import { City } from "src/city/entities/city.entity";
 import { Pet } from "src/pets/entities/pet.entity";
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, ManyToMany, JoinTable, CreateDateColumn, OneToMany } from "typeorm";

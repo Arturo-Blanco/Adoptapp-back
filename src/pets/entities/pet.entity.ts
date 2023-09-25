@@ -2,7 +2,7 @@ import { City } from "src/city/entities/city.entity";
 import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, ManyToOne, CreateDateColumn, ManyToMany, JoinTable, OneToMany } from "typeorm";
 import { Attribute } from "../attributes/entities/attribute.entity";
 import { User } from "src/users/entities/user.entity";
-import { Adoption } from "src/adoptions/entities/adoptions.entity";
+import { Adoption } from "src/Services/adoptions/entities/adoptions.entity";
 
 @Entity({ name: 'pets' })
 export class Pet {

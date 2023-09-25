@@ -1,4 +1,6 @@
-import { Adoption } from "src/adoptions/entities/adoptions.entity";
+import { Adoption } from "src/Services/adoptions/entities/adoptions.entity";
+import { Complaint } from "src/Services/complaint/entities/complaint.entity";
+import { Information } from "src/Services/information/entities/information.entity";
 import { Pet } from "src/pets/entities/pet.entity";
 import { User } from "src/users/entities/user.entity";
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany, JoinColumn } from "typeorm";
@@ -22,8 +24,14 @@ export class City {
     users: User[];
 
     @OneToMany(() => Adoption, adoption => adoption.city)
-    adoption : Adoption;
+    adoption : Adoption[];
 
+    @OneToMany(() => Complaint, complaint => complaint.city)
+    complaints : Complaint[];
+    
+    @OneToMany(() => Information, information => information.city)
+    informations : Information[];
+    
     constructor(name: string, zipCode: number) {
         this.name = name;
         this.zip_code = zipCode;
