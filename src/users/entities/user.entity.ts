@@ -1,7 +1,8 @@
 import { Adoption } from "src/Services/adoptions/entities/adoptions.entity";
 import { City } from "src/city/entities/city.entity";
 import { Pet } from "src/pets/entities/pet.entity";
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, ManyToMany, JoinTable, CreateDateColumn, OneToMany } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, ManyToMany, JoinTable, CreateDateColumn, OneToMany, OneToOne } from "typeorm";
+import { UserSecurity } from "./user.security.entity";
 
 @Entity({ name: 'users' })
 export class User {
@@ -49,6 +50,9 @@ export class User {
 
     @OneToMany(() => Adoption, adoption => adoption.user)
     adoption: Adoption;
+
+    @OneToOne(() => UserSecurity, user_security => user_security.user_data)
+    user_security : UserSecurity;
 
     constructor(name: string, surname: string, age: number, email: string, phoneNumber: string, address: string, hasPet: boolean, livingPlace: string) {
         this.name = name;

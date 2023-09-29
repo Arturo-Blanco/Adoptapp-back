@@ -1,5 +1,5 @@
 import { City } from "src/city/entities/city.entity";
-import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, ManyToOne, CreateDateColumn, ManyToMany, JoinTable, OneToMany } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, ManyToOne, CreateDateColumn, ManyToMany, JoinTable, OneToMany, OneToOne } from "typeorm";
 import { Attribute } from "../attributes/entities/attribute.entity";
 import { User } from "src/users/entities/user.entity";
 import { Adoption } from "src/Services/adoptions/entities/adoptions.entity";
@@ -51,7 +51,7 @@ export class Pet {
     @ManyToMany(() => User, user => user.pets)
     users: User[];
 
-    @OneToMany(() => Adoption, adoption => adoption.pet)
+    @OneToOne(() => Adoption, adoption => adoption.pet)
     adoption : Adoption;
     
     constructor(name: string, specie: string, sex: string, age: number, description: string, urlImg: string) {

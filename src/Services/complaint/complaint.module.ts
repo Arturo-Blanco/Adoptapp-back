@@ -5,10 +5,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Complaint } from './entities/complaint.entity';
 import { City } from 'src/city/entities/city.entity';
 import { Complainant } from './entities/complainant.entity';
+import { ComplaintType } from './entities/complaint.types.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Complaint, City, Complainant])
+    TypeOrmModule.forFeature([Complaint, ComplaintType, City, Complainant])
   ],
   controllers: [ComplaintController],
   providers: [ComplaintService],
