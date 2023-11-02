@@ -31,4 +31,10 @@ export class Information {
     @ManyToOne(() => City, city => city.informations)
     @JoinColumn({ name: 'fk_city_id' })
     city: City;
+
+    constructor(informationDate: Date, informationUrl: string, imgUrl: string) {
+        this.information_date = informationDate;
+        this.information_url = informationUrl;
+        this.img_url = imgUrl;
+    }
 }

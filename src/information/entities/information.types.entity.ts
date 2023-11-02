@@ -13,4 +13,16 @@ export class InformationType {
     @OneToMany(() => Information, information => information.informationType)
     informations: Information[];
 
+    constructor(type: string) {
+        this.type = type;
+    }
+    public getId(): number {
+        return this.id;
+    }
+    public getType(): string {
+        return this.type;
+    }
+    public setType(newType: string): void {
+        this.type = newType;
+    }
 }

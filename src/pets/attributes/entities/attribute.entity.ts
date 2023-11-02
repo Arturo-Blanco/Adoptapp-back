@@ -1,3 +1,4 @@
+import { IsNotEmpty } from "class-validator";
 import { Pet } from "src/pets/entities/pet.entity";
 import { Entity, PrimaryGeneratedColumn, Column, ManyToMany } from "typeorm";
 

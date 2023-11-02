@@ -1,7 +1,7 @@
 import { City } from "src/city/entities/city.entity";
 import { Pet } from "src/pets/entities/pet.entity";
-import { User } from "src/users/entities/user.entity";
-import { CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Client } from "src/clients/entities/client.entity";
+import { CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity({ name: 'adoptions' })
 export class Adoption {
@@ -11,12 +11,15 @@ export class Adoption {
     @CreateDateColumn()
     adoption_date: Date;
 
-    @OneToOne(() => Pet, pet => pet.adoption) 
+    @OneToOne(() => Pet, pet => pet.adoption)
+    @JoinColumn({ name: 'pet_id' })
     pet: Pet;
 
-    @ManyToOne(() => User, user => user.adoption)
-    user: User;
+    @ManyToOne(() => Client, client => client.adoption)
+    @JoinColumn({ name: 'client_id' })
+    client: Client;
 
     @ManyToOne(() => City, city => city.adoption)
+    @JoinColumn({ name: 'city_id' })
     city: City;
 }

@@ -1,8 +1,9 @@
 import { City } from "src/city/entities/city.entity";
-import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, ManyToOne, CreateDateColumn, ManyToMany, JoinTable, OneToMany, OneToOne } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, ManyToOne, CreateDateColumn, ManyToMany, JoinTable, OneToOne } from "typeorm";
 import { Attribute } from "../attributes/entities/attribute.entity";
-import { User } from "src/users/entities/user.entity";
-import { Adoption } from "src/Services/adoptions/entities/adoptions.entity";
+import { Client } from "src/clients/entities/client.entity";
+import { Adoption } from "src/adoptions/entities/adoptions.entity";
+import { Institution } from "src/institutions/entities/institution.entity";
 
 @Entity({ name: 'pets' })
 export class Pet {
@@ -37,23 +38,23 @@ export class Pet {
     @Column({ type: 'int', default: 0 })
     interested: number;
 
-    @Column({ name: 'fk_city_id', nullable: false })
-    fk_city_id: number;
+    @Column({ name: 'fk_institution_id', nullable: false })
+    fk_institution_id: number;
 
-    @ManyToOne(() => City, city => city.pets)
-    @JoinColumn({ name: 'fk_city_id' })
-    city: City;
+    @ManyToOne(() => Institution, institution => institution.pets)
+    @JoinColumn({ name: 'fk_institution_id' })
+    institution: Institution;
 
     @ManyToMany(() => Attribute, attributes => attributes.pets)
     @JoinTable({ name: 'pets_attributes' })
     attributes: Attribute[];
 
-    @ManyToMany(() => User, user => user.pets)
-    users: User[];
+    @ManyToMany(() => Client, client => client.pets)
+    clients: Client[];
 
     @OneToOne(() => Adoption, adoption => adoption.pet)
-    adoption : Adoption;
-    
+    adoption: Adoption;
+
     constructor(name: string, specie: string, sex: string, age: number, description: string, urlImg: string) {
         this.name = name;
         this.specie = specie;
@@ -97,9 +98,6 @@ export class Pet {
     }
     public setAttributes(newAttributes: Attribute[]): void {
         this.attributes = newAttributes;
-    }
-    public setCity(newZipCode: City): void {
-        this.city = newZipCode;
     }
     public setDescription(newDescription: string): void {
         this.description = newDescription;

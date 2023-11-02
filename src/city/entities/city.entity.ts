@@ -1,9 +1,9 @@
-import { Adoption } from "src/Services/adoptions/entities/adoptions.entity";
-import { Complaint } from "src/Services/complaint/entities/complaint.entity";
-import { Information } from "src/Services/information/entities/information.entity";
-import { Pet } from "src/pets/entities/pet.entity";
-import { User } from "src/users/entities/user.entity";
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, JoinColumn } from "typeorm";
+import { Client } from './../../clients/entities/client.entity';
+import { Adoption } from "src/adoptions/entities/adoptions.entity";
+import { Complaint } from "src/complaint/entities/complaint.entity";
+import { Information } from "src/information/entities/information.entity";
+import { Institution } from 'src/institutions/entities/institution.entity';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from "typeorm";
 
 @Entity({ name: 'cities' })
 export class City {
@@ -17,26 +17,29 @@ export class City {
     @Column({ unique: true })
     zip_code: number
 
-    @OneToMany(() => Pet, pet => pet.city)
-    pets: Pet[];
-
-    @OneToMany(() => User, user => user.city)
-    users: User[];
+    @OneToMany(() => Client, client => client.city)
+    clients: Client[];
 
     @OneToMany(() => Adoption, adoption => adoption.city)
-    adoption : Adoption[];
+    adoption: Adoption[];
 
     @OneToMany(() => Complaint, complaint => complaint.city)
-    complaints : Complaint[];
-    
+    complaints: Complaint[];
+
     @OneToMany(() => Information, information => information.city)
-    informations : Information[];
-    
+    informations: Information[];
+
+    @OneToMany(() => Institution, institution => institution.city)
+    institution: Institution[];
+
     constructor(name: string, zipCode: number) {
         this.name = name;
         this.zip_code = zipCode;
     }
 
+    public getId(): number {
+        return this.id;
+    }
     public getName(): string {
         return this.name;
     }

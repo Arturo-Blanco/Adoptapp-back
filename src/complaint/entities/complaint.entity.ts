@@ -15,7 +15,7 @@ export class Complaint {
     description: string;
 
     @Column()
-    url_img: string;
+    img_url: string;
 
     @Column()
     fk_complaint_type_id: number;
@@ -37,4 +37,38 @@ export class Complaint {
     @ManyToOne(() => City, city => city.complaints)
     @JoinColumn({ name: 'fk_city_id' })
     city: City;
+
+    constructor(complaintDate : Date, description: string, imgUrl : string) {
+        this.complaint_date = complaintDate;
+        this.description = description;
+        this.img_url = imgUrl;
+    }
+
+    public getId(): number {
+        return this.id;
+    }
+    public getComplaintDate(): Date {
+        return this.complaint_date;
+    }
+    public getDescription(): string {
+        return this.description;
+    }
+    public getImgUrl(): string {
+        return this.img_url;
+    }
+    public getComplaintType(): ComplaintType {
+        return this.complaintType;
+    }
+    public getComplainant(): Complainant {
+        return this.complainants;
+    }
+    public setDate(newDate : Date): void {
+        this.complaint_date = newDate;
+    }
+    public setDescription(newDescription : string): void {
+        this.description = newDescription;
+    }
+    public setUrlImg(newImgUrl : string) : void {
+        this.img_url = newImgUrl;
+    }
 }
