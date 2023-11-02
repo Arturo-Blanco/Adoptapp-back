@@ -1,5 +1,5 @@
 import { City } from './entities/city.entity';
-import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post } from '@nestjs/common';
 import { CityService } from './city.service';
 import { CreateCityDTO, UpdateCityDTO } from './dto/city.dto';
 
@@ -8,22 +8,32 @@ export class CityController {
   constructor(private readonly cityService: CityService) { }
 
   @Post('addCity')
-  async getAddCity(@Body() city: CreateCityDTO): Promise<string> {
-    return await this.cityService.addCity(city);
+  async getAddCity(@Body() createCityDTO: CreateCityDTO): Promise<string> {
+    return await this.cityService.addCity(createCityDTO);
   }
 
-  @Get('allCities')
+  @Get('all')
   async getCities(): Promise<City[]> {
     return await this.cityService.allCities();
   }
 
-  @Get(':zipCode')
+  @Get('zipCode/:zipCode')
   async getCityByZip(@Param('zipCode', ParseIntPipe) zipCode: number): Promise<City> {
     return await this.cityService.cityByZip(zipCode);
+  }
+
+  @Get('id/:cityId')
+  async getCityCyId(@Param('cityId', ParseIntPipe) cityId: number): Promise<City> {
+    return await this.cityService.cityById(cityId)
   }
 
   @Patch('update/:cityId')
   async getUpdateCity(@Param('cityId', ParseIntPipe) cityId: number, @Body() data: UpdateCityDTO): Promise<string> {
     return await this.cityService.updateCity(cityId, data);
+  }
+
+  @Delete('delete/:cityId')
+  async getDeleteCity(@Param('cityId', ParseIntPipe) cityId : number) : Promise <string | void > {
+    return await this.cityService.deleteCity(cityId);
   }
 }

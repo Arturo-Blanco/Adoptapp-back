@@ -1,4 +1,4 @@
-import { HttpException, Injectable, HttpStatus } from '@nestjs/common';
+import { HttpException, Injectable, HttpStatus, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { City } from './entities/city.entity';
 import { FindOneOptions, Repository } from 'typeorm';
@@ -12,14 +12,15 @@ export class CityService {
   ) { }
 
   // Function to add a new city to the database
-  async addCity(city: CreateCityDTO): Promise<string> {
+  async addCity(createCityDTO: CreateCityDTO): Promise<string> {
+    const { name, zipCode } = createCityDTO;
     try {
-      const newCity: City = await this.cityRepository.save(new City(city.name, city.zipCode));
+      const newCity: City = await this.cityRepository.save(new City(name, zipCode));
 
       if (!newCity) {
-        throw new Error(`Error adding the city: ${city.name}.`);
+        throw new Error(`Error adding the city: ${name}.`);
       }
-      return `Added the city: ${city.name}.`
+      return `Added the city: ${name}.`
     } catch (error) {
       throw new HttpException({
         status: HttpStatus.CONFLICT,
@@ -46,6 +47,7 @@ export class CityService {
     }
   }
 
+  //function to return a city by zip code
   async cityByZip(zipCode: number): Promise<City> {
     try {
       const criterion: FindOneOptions = { where: { zip_code: zipCode } };
@@ -64,6 +66,27 @@ export class CityService {
         HttpStatus.BAD_REQUEST);
     }
   }
+  
+  //function to return a city by zip code
+  async cityById(cityId: number): Promise<City> {
+    try {
+      const criterion: FindOneOptions = { where: { id: cityId } };
+      const city: City = await this.cityRepository.findOne(criterion);
+
+      if (!city) {
+        throw new NotFoundException(`There is no city with id ${cityId}.`);
+      }
+      return city;
+
+    } catch (error) {
+      throw new HttpException({
+        status: HttpStatus.BAD_REQUEST,
+        error: `Error getting city - ` + error.message,
+      },
+        HttpStatus.BAD_REQUEST);
+    }
+  }
+
   // Function to update a city's information
   async updateCity(cityId: number, data: UpdateCityDTO): Promise<string> {
     try {
@@ -91,6 +114,25 @@ export class CityService {
       throw new HttpException({
         status: HttpStatus.CONFLICT,
         error: `Error updating city - ` + error.message,
+      },
+        HttpStatus.CONFLICT);
+    }
+  }
+
+  // function to delete city 
+  async deleteCity(cityId: number): Promise<string | void> {
+    try {
+      const city = await this.cityById(cityId);
+      await this.cityRepository.remove(city);
+      return `City with id ${cityId} was removed.`
+    }
+    catch (error) {
+      if (error.status === 400) {
+        throw new NotFoundException(`There is no city with id ${cityId}.`);
+      }
+      throw new HttpException({
+        status: HttpStatus.CONFLICT,
+        error: `Error removing city - ` + error,
       },
         HttpStatus.CONFLICT);
     }
