@@ -1,11 +1,11 @@
-import { Adoption } from "src/Services/adoptions/entities/adoptions.entity";
+import { Adoption } from "src/adoptions/entities/adoptions.entity";
 import { City } from "src/city/entities/city.entity";
 import { Pet } from "src/pets/entities/pet.entity";
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, ManyToMany, JoinTable, CreateDateColumn, OneToMany, OneToOne } from "typeorm";
-import { UserSecurity } from "./user.security.entity";
+import { User } from "./user.entity";
 
-@Entity({ name: 'users' })
-export class User {
+@Entity({ name: 'clients' })
+export class Client {
 
     @PrimaryGeneratedColumn()
     id: number;
@@ -37,22 +37,22 @@ export class User {
     @Column()
     living_place: string;
 
-    @ManyToMany(() => Pet, pet => pet.users)
+    @ManyToMany(() => Pet, pet => pet.clients)
     @JoinTable({ name: 'interested_users' })
     pets: Pet[];
 
     @Column({ name: 'fk_city_id', nullable: false })
     fk_city_id: number;
 
-    @ManyToOne(() => City, city => city.users)
+    @ManyToOne(() => City, city => city.clients)
     @JoinColumn({ name: 'fk_city_id' })
     city: City;
 
-    @OneToMany(() => Adoption, adoption => adoption.user)
+    @OneToMany(() => Adoption, adoption => adoption.client)
     adoption: Adoption;
 
-    @OneToOne(() => UserSecurity, user_security => user_security.user_data)
-    user_security : UserSecurity;
+    @OneToOne(() => User, user => user.client)
+    user: User;
 
     constructor(name: string, surname: string, age: number, email: string, phoneNumber: string, address: string, hasPet: boolean, livingPlace: string) {
         this.name = name;
@@ -67,7 +67,7 @@ export class User {
     public getName(): string {
         return this.name;
     }
-    public getSurname() : string {
+    public getSurname(): string {
         return this.surname;
     }
     public getAge(): number {

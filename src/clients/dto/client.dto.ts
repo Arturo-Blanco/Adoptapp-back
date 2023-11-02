@@ -1,5 +1,5 @@
 
-export class CreateUserDTO {
+export class CreateClientDTO {
     readonly name: string;
     readonly surname: string;
     readonly age: number;
