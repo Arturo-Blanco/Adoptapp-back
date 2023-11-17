@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Client } from './entities/client.entity';
 import { FindManyOptions, FindOneOptions, Repository } from 'typeorm';
 import { CreateClientDTO } from './dto/client.dto';
-import { checkEmptyValues, checkValues } from 'src/Services/valuesValidation';
+import { checkEmptyValues, checkValues } from 'src/functions/valuesValidation';
 import { City } from 'src/city/entities/city.entity';
 import { Pet } from 'src/pets/entities/pet.entity';
 

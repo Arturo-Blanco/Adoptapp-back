@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, UsePipes, ValidationPipe } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post } from "@nestjs/common";
 import { AttributesService } from './attributes.service';
 import { AttributeDTO } from "./dto/attribute.dto";
 import { Attribute } from "./entities/attribute.entity";
@@ -8,7 +8,6 @@ export class AttributesController {
     constructor(private readonly attributesService: AttributesService) { }
 
     @Post('add')
-    @UsePipes(ValidationPipe)
     async getAddAttribut(@Body() attributeDTO: AttributeDTO): Promise<string> {
         return await this.attributesService.addAttribute(attributeDTO);
     }
