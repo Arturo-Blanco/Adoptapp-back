@@ -1,7 +1,8 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn, Unique } from 'typeorm';
 import { Complaint } from './complaint.entity';
 
 @Entity({ name: 'complaint_types' })
+@Unique(['type'])
 export class ComplaintType {
 
     @PrimaryGeneratedColumn()
