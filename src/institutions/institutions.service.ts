@@ -18,7 +18,7 @@ export class InstitutionService {
     async addInstitution(createInstitutionDTO: CreateInstitutionDTO): Promise<Institution> {
         const { name, city_id } = createInstitutionDTO;
         try {
-            const city: City = await this.cityService.cityById(city_id);
+            const city: City = await this.cityService.findById(city_id);
             const newInstitution: Institution = new Institution(name);
             if (!newInstitution) {
                 throw new Error('Error creating institution.');
@@ -71,7 +71,7 @@ export class InstitutionService {
     async updateInstitution(institutionId: number, updateInstitutionDTO: UpdateInstitutionDTO): Promise<string> {
         const { name, city_id } = updateInstitutionDTO;
         try {
-            const city: City = await this.cityService.cityById(city_id);
+            const city: City = await this.cityService.findById(city_id);
             const institution: Institution = await this.getById(institutionId);
             institution.setName(name);
             if (city) {

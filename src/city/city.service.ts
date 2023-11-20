@@ -66,9 +66,9 @@ export class CityService {
         HttpStatus.BAD_REQUEST);
     }
   }
-  
-  //function to return a city by zip code
-  async cityById(cityId: number): Promise<City> {
+
+  //function to return a city by id
+  async findById(cityId: number): Promise<City> {
     try {
       const criterion: FindOneOptions = { where: { id: cityId } };
       const city: City = await this.cityRepository.findOne(criterion);
@@ -86,7 +86,6 @@ export class CityService {
         HttpStatus.BAD_REQUEST);
     }
   }
-
   // Function to update a city's information
   async updateCity(cityId: number, data: UpdateCityDTO): Promise<string> {
     try {
@@ -122,7 +121,7 @@ export class CityService {
   // function to delete city 
   async deleteCity(cityId: number): Promise<string | void> {
     try {
-      const city = await this.cityById(cityId);
+      const city = await this.findById(cityId);
       await this.cityRepository.remove(city);
       return `City with id ${cityId} was removed.`
     }

@@ -1,4 +1,4 @@
-import { ClientsModule } from './clients/client.module';
+import { UserModule } from './clients/user.module';
 import { Module } from '@nestjs/common';
 import { PetsModule } from './pets/pets.module';
 import { ComplaintModule } from './complaint/complaint.module';
@@ -21,7 +21,7 @@ import { InstitutionModule } from './institutions/institutions.module';
       "synchronize": true,
     }),
     PetsModule,
-    ClientsModule,
+    UserModule,
     ComplaintModule, 
     CityModule, 
     AttributesModule, 

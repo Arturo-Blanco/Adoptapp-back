@@ -18,13 +18,13 @@ export class CityController {
   }
 
   @Get('zipCode/:zipCode')
-  async getCityByZip(@Param('zipCode', ParseIntPipe) zipCode: number): Promise<City> {
+  async getByZip(@Param('zipCode', ParseIntPipe) zipCode: number): Promise<City> {
     return await this.cityService.cityByZip(zipCode);
   }
 
   @Get('id/:cityId')
-  async getCityCyId(@Param('cityId', ParseIntPipe) cityId: number): Promise<City> {
-    return await this.cityService.cityById(cityId)
+  async getById(@Param('cityId', ParseIntPipe) cityId: number): Promise<City> {
+    return await this.cityService.findById(cityId)
   }
 
   @Patch('update/:cityId')

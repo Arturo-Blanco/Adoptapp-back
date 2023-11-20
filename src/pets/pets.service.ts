@@ -6,7 +6,7 @@ import { CreatePetDTO, PetDTO, UpdatePetDTO } from './dto/pet.dto';
 import { City } from 'src/city/entities/city.entity';
 import { Attribute } from './attributes/entities/attribute.entity';
 import { checkEmptyValues, checkValues } from 'src/functions/valuesValidation';
-import { Client } from 'src/clients/entities/client.entity';
+import { User } from 'src/clients/entities/user.entity';
 import { Adoption } from 'src/adoptions/entities/adoptions.entity';
 
 @Injectable()
@@ -19,8 +19,8 @@ export class PetsService {
     private cityRepository: Repository<City>,
     @InjectRepository(Attribute)
     private readonly attributRepository: Repository<Attribute>,
-    @InjectRepository(Client)
-    private readonly clientRepository: Repository<Client>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
     @InjectRepository(Adoption)
     private readonly adoptionRepository: Repository<Adoption>
   ) { }
@@ -228,7 +228,7 @@ export class PetsService {
         throw new Error(`Sorry, ${pet.getName()} has already been adopted.`)
       }
       const userCriteria: FindOneOptions = { where: { id: userId }, relations: ['pets'] };
-      const user: Client = await this.clientRepository.findOne(userCriteria);
+      const user: User = await this.userRepository.findOne(userCriteria);
 
       if (!user) {
         throw new Error(`The user with ID ${userId} does not exist.`);
@@ -242,7 +242,7 @@ export class PetsService {
 
       const newAdoption: Adoption = new Adoption();
       newAdoption.pet = pet;
-      newAdoption.client = user;
+      newAdoption.user = user;
       newAdoption.city = city;
 
       const requestedPet = user.pets.map(pet => pet.id);
@@ -258,7 +258,7 @@ export class PetsService {
       }
       pet.setAvailable();
 
-      await this.clientRepository.save(user);
+      await this.userRepository.save(user);
       await this.adoptionRepository.save(newAdoption);
       await this.petRepository.save(pet);
 
@@ -340,7 +340,7 @@ export class PetsService {
 
       const attributesCriteria: FindManyOptions = { where: attributes.map(name => ({ name: name })) };
       const existingAttributes = await this.attributRepository.find(attributesCriteria);
-      const attributeToCreate = attributes.filter(attribute => !existingAttributes.some(existingAttributes => existingAttributes.name.toLowerCase() === attribute.toLowerCase()));
+      const attributeToCreate = attributes.filter(attribute => !existingAttributes.some(existingAttributes => existingAttributes.name.toLocaleLowerCase() === attribute.toLocaleLowerCase()));
 
       const newAttributes = await Promise.all(
         attributeToCreate.map(async attribute => {

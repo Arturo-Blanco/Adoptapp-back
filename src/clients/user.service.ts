@@ -1,18 +1,18 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Client } from './entities/client.entity';
+import { User } from './entities/user.entity';
 import { FindManyOptions, FindOneOptions, Repository } from 'typeorm';
-import { CreateClientDTO } from './dto/client.dto';
+import { CreateUserDTO } from './dto/user.dto';
 import { checkEmptyValues, checkValues } from 'src/functions/valuesValidation';
 import { City } from 'src/city/entities/city.entity';
 import { Pet } from 'src/pets/entities/pet.entity';
 
 @Injectable()
-export class ClientService {
+export class UserService {
 
   constructor(
-    @InjectRepository(Client)
-    private readonly clientRepository: Repository<Client>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
     @InjectRepository(City)
     private readonly cityRepository: Repository<City>,
     @InjectRepository(Pet)
@@ -21,8 +21,8 @@ export class ClientService {
 
   validValues = ['name', 'surname', 'age', 'email', 'phoneNumber', 'address', 'zipCode', 'hasPet', 'livingPlace'];
 
-  async addUser(userDTO: CreateClientDTO, petId: number): Promise<{ status: number, message: string }> {
-    const { name, surname, age, email, phoneNumber, address, zipCode, hasPet, livingPlace} = userDTO;
+  async addUser(userDTO: CreateUserDTO, petId: number): Promise<{ status: number, message: string }> {
+    const { name, surname, email, phoneNumber, address, zipCode, hasPet, livingPlace } = userDTO;
     try {
       // Check if required values are missing
       if (!checkValues(userDTO, this.validValues)) {
@@ -52,20 +52,19 @@ export class ClientService {
       }
 
       const emailCriteria: FindOneOptions = { where: { email: email }, relations: ['pets'] };
-      const user: Client = await this.clientRepository.findOne(emailCriteria);
+      const user: User = await this.userRepository.findOne(emailCriteria);
       // If user does not exist yet, is created
       if (!user) {
 
-        const newUser: Client = new Client(name, surname, age, email, phoneNumber, address, hasPet, livingPlace);
+        const newUser: User = new User(name, surname, hasPet);
 
         if (!newUser) {
           throw new Error(`Could not get user data.`);
         };
-        newUser.city = city;
         newUser.pets = [existingPet];
         existingPet.setInterested();
 
-        await this.clientRepository.save(newUser);
+        await this.userRepository.save(newUser);
         await this.petRepository.save(existingPet);
         return { status: HttpStatus.CREATED, message: `User ${newUser.getSurname()} ${newUser.getName()} was added.` };
       }
@@ -88,7 +87,7 @@ export class ClientService {
         user.setInterestedIn(requestedPet);
         existingPet.setInterested();
 
-        await this.clientRepository.save(user);
+        await this.userRepository.save(user);
         await this.petRepository.save(existingPet);
         return { status: HttpStatus.OK, message: `${user.getSurname()} ${user.getName()} is interested in adopting another pet.` }
       }
@@ -101,10 +100,10 @@ export class ClientService {
     }
   }
   // Function to get all users with their relasionship
-  async allUsers(): Promise<Client[]> {
+  async allUsers(): Promise<User[]> {
     try {
       const criterion: FindManyOptions = { relations: ['pets'] };
-      const allUsers: Client[] = await this.clientRepository.find(criterion);
+      const allUsers: User[] = await this.userRepository.find(criterion);
 
       if (!allUsers) {
         throw new Error(`Could not get user data.`);
@@ -119,10 +118,10 @@ export class ClientService {
     }
   }
   //Function to get user by ID
-  async getUserById(userId: number): Promise<Client> {
+  async getUserById(userId: number): Promise<User> {
     try {
       const criterion: FindOneOptions = { relations: ['pets'], where: { id: userId } };
-      const user: Client = await this.clientRepository.findOne(criterion);
+      const user: User = await this.userRepository.findOne(criterion);
 
       if (!user) {
         throw new Error(`There is no user with ID ${userId}.`);
@@ -140,14 +139,14 @@ export class ClientService {
   async deleteUser(userEmail: string): Promise<string> {
     try {
       const criterion: FindOneOptions = { where: { email: userEmail } };
-      const user: Client = await this.clientRepository.findOne(criterion);
+      const user: User = await this.userRepository.findOne(criterion);
 
       if (!user) {
         throw new Error(`The user does not exist in the database.`);
       }
 
       const userName = `${user.getSurname()} ${user.getName()}`;
-      await this.clientRepository.remove(user);
+      await this.userRepository.remove(user);
 
       return `${userName} was deleted from database.`;
 
@@ -163,7 +162,7 @@ export class ClientService {
   async removePet(userEmail: string, petId: number): Promise<string> {
     try {
       const criterion: FindOneOptions = { where: { email: userEmail }, relations: ['pets'] };
-      const user: Client = await this.clientRepository.findOne(criterion);
+      const user: User = await this.userRepository.findOne(criterion);
 
       if (!user) {
         throw new Error(`The user does not exist in the database.`);
@@ -187,7 +186,7 @@ export class ClientService {
           user.pets = [];
         }
 
-        await this.clientRepository.save(user);
+        await this.userRepository.save(user);
         return `The pet with id ${petId} was remove from user ${user.getSurname()} ${user.getName()}.`
       }
     } catch (error) {

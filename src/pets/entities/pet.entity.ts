@@ -1,7 +1,6 @@
-import { City } from "src/city/entities/city.entity";
 import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, ManyToOne, CreateDateColumn, ManyToMany, JoinTable, OneToOne } from "typeorm";
 import { Attribute } from "../attributes/entities/attribute.entity";
-import { Client } from "src/clients/entities/client.entity";
+import { User } from "src/clients/entities/user.entity";
 import { Adoption } from "src/adoptions/entities/adoptions.entity";
 import { Institution } from "src/institutions/entities/institution.entity";
 
@@ -49,8 +48,8 @@ export class Pet {
     @JoinTable({ name: 'pets_attributes' })
     attributes: Attribute[];
 
-    @ManyToMany(() => Client, client => client.pets)
-    clients: Client[];
+    @ManyToMany(() => User, user => user.pets)
+    users: User[];
 
     @OneToOne(() => Adoption, adoption => adoption.pet)
     adoption: Adoption;
