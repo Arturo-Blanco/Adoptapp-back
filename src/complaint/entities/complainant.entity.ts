@@ -13,7 +13,7 @@ export class Complainant {
     @Column({ nullable: false, length: 15 })
     phone_number: string;
 
-    @OneToMany(() => Complaint, complaint => complaint.complainants)
+    @OneToMany(() => Complaint, complaint => complaint.complainant)
     complaints: Complaint[];
 
     constructor(email: string, phoneNumber: string) {

@@ -5,22 +5,41 @@ import { ComplaintType } from '../entities/complaint.types.entity';
 import { FindOneOptions, Repository } from 'typeorm';
 import { Complaint } from '../entities/complaint.entity';
 import { ComplainantDTO, ComplaintTypeDTO, CreateComplaintDTO } from '../dto/complaint.dto';
+import { ComplaintTypeService } from './complaintType.service';
+import { ComplainantService } from './complainant.service';
+import { City } from 'src/city/entities/city.entity';
+import { CityService } from 'src/city/city.service';
 
 @Injectable()
 export class ComplaintService {
   constructor(
-    @InjectRepository(ComplaintType)
-    private readonly complaintTypeRepository: Repository<ComplaintType>,
-    @InjectRepository(Complainant)
-    private readonly complainantRepository: Repository<Complainant>,
     @InjectRepository(Complaint)
     private readonly complaintRepository: Repository<Complaint>,
+    private readonly complaintTypeService: ComplaintTypeService,
+    private readonly complainantService: ComplainantService,
+    private readonly cityService : CityService
   ) { }
 
-  async createComplaint(createComplaintDTO: CreateComplaintDTO): Promise<any> {
-    const { type, complaintDate, description, imgUrl, complaintType, complaintCity, complainantEmail, complainantPhoneNumber } = createComplaintDTO;
+  async createComplaint(filePath : string, createComplaintDTO: CreateComplaintDTO): Promise<any> {
+    const { description, petName, petSpecie, petAge, complaintType, zipCode, email, phoneNumber } = createComplaintDTO;
     try {
-      return "Hola"
+        const complainantDTO : ComplainantDTO = {
+          email,
+          phoneNumber
+        }
+        const complainant : Complainant = await this.complainantService.createComplainant(complainantDTO);
+        const city : City = await this.cityService.findById(zipCode);
+        const type : ComplaintType = await this.complaintTypeService.findById(complaintType);
+
+        const newComplaint : Complaint = new Complaint(description,filePath,petSpecie,petName,petAge);
+        if(!newComplaint){
+          throw new Error('Error adding new complaint.');
+        }
+        newComplaint.complainant = complainant;
+        newComplaint.city = city;
+        newComplaint.complaintType = type;
+
+        return await this.complaintRepository.save(newComplaint);
     }
     catch (error) {
       throw new HttpException({

@@ -18,6 +18,15 @@ export class Complaint {
     img_url: string;
 
     @Column()
+    pet_name : string;
+
+    @Column()
+    pet_specie : string;
+
+    @Column()
+    pet_age : number;
+    
+    @Column()
     fk_complaint_type_id: number;
 
     @Column()
@@ -32,16 +41,18 @@ export class Complaint {
 
     @ManyToOne(() => Complainant, complainant => complainant.complaints)
     @JoinColumn({ name: 'fk_complainant_id' })
-    complainants: Complainant;
+    complainant: Complainant;
 
     @ManyToOne(() => City, city => city.complaints)
     @JoinColumn({ name: 'fk_city_id' })
     city: City;
 
-    constructor(complaintDate : Date, description: string, imgUrl : string) {
-        this.complaint_date = complaintDate;
+    constructor(description: string, imgUrl : string, petSpecie? : string, petName? : string, petAge? : number) {
         this.description = description;
         this.img_url = imgUrl;
+        this.pet_specie = petSpecie;
+        this.pet_age = petAge;
+        this.pet_name = petName;
     }
 
     public getId(): number {
@@ -60,7 +71,7 @@ export class Complaint {
         return this.complaintType;
     }
     public getComplainant(): Complainant {
-        return this.complainants;
+        return this.complainant;
     }
     public setDate(newDate : Date): void {
         this.complaint_date = newDate;

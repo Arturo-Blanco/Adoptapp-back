@@ -6,12 +6,12 @@ export class ComplainantDTO {
     readonly phoneNumber: string;
 }
 export class CreateComplaintDTO {
-    readonly type: string;
-    readonly complaintDate: Date;
     readonly description: string;
-    readonly imgUrl: string;
+    readonly petName? : string;
+    readonly petSpecie? : string;
+    readonly petAge? : number;
     readonly complaintType: number;
-    readonly complaintCity: number;
-    readonly complainantEmail: string;
-    readonly complainantPhoneNumber: string;
+    readonly zipCode: number;
+    readonly email: string;
+    readonly phoneNumber: string;
 }
