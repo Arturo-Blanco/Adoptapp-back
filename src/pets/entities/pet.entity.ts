@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, ManyToOne, CreateDateColumn, ManyToMany, JoinTable, OneToOne } from "typeorm";
 import { Attribute } from "../attributes/entities/attribute.entity";
-import { User } from "src/clients/entities/user.entity";
+import { User } from "src/users/entities/user.entity";
 import { Adoption } from "src/adoptions/entities/adoptions.entity";
 import { Institution } from "src/institutions/entities/institution.entity";
 

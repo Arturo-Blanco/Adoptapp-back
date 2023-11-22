@@ -2,14 +2,15 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe } from 
 import { UserService } from './user.service';
 import { CreateUserDTO } from './dto/user.dto';
 import { User } from './entities/user.entity';
+import { UserInformation } from './entities/user-information.entity';
 
 @Controller('user')
 export class UsersController {
   constructor(private readonly userService: UserService) { }
 
-  @Post('addUser/:petId')
-  async getAddUser(@Body() userDTO: CreateUserDTO, @Param('petId', ParseIntPipe) petId: number): Promise<{ status: number, message: string }> {
-    return await this.userService.addUser(userDTO, petId);
+  @Post('addUser')
+  async getAddUser(@Body() userDTO: CreateUserDTO): Promise<User> {
+    return await this.userService.addUser(userDTO);
   }
 
   @Get('all')
@@ -19,7 +20,12 @@ export class UsersController {
 
   @Get(':userId')
   async getUserById(@Param('userId', ParseIntPipe) userId: number): Promise<User> {
-    return this.userService.getUserById(userId);
+    return await this.userService.findById(userId);
+  }
+
+  @Get(':userEmail')
+  async getUserByEmail(@Param('userEmail') userEmail: string): Promise<UserInformation> {
+    return await this.userService.findEmail(userEmail);
   }
 
   @Delete('delete/:userEmail')
@@ -29,6 +35,6 @@ export class UsersController {
 
   @Delete('removePet/:userEmail/:petId')
   async getDeletePet(@Param('userEmail') userEmail: string, @Param('petId', ParseIntPipe) petId: number): Promise<string> {
-    return this.userService.removePet(userEmail, petId);
+    return await this.userService.removePet(userEmail, petId);
   }
 }

@@ -1,4 +1,4 @@
-import { UserModule } from './clients/user.module';
+import { UserModule } from './users/user.module';
 import { Module } from '@nestjs/common';
 import { PetsModule } from './pets/pets.module';
 import { ComplaintModule } from './complaint/complaint.module';
@@ -7,6 +7,8 @@ import { CityModule } from './city/city.module';
 import { AttributesModule } from './pets/attributes/attributes.module';
 import { InformationModule } from './information/information.module';
 import { InstitutionModule } from './institutions/institutions.module';
+import { AuthModule } from './auth/auth.module';
+import { RoleModule } from './role/role.module';
 
 @Module({
   imports: [
@@ -26,7 +28,9 @@ import { InstitutionModule } from './institutions/institutions.module';
     CityModule, 
     AttributesModule, 
     InformationModule,
-    InstitutionModule
+    InstitutionModule,
+    AuthModule,
+    RoleModule
   ],
   controllers: [],
   providers: [],

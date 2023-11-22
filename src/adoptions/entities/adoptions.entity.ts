@@ -1,6 +1,6 @@
 import { City } from "src/city/entities/city.entity";
 import { Pet } from "src/pets/entities/pet.entity";
-import { User } from "src/clients/entities/user.entity";
+import { User } from "src/users/entities/user.entity";
 import { CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity({ name: 'adoptions' })

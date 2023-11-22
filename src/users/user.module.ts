@@ -7,7 +7,8 @@ import { City } from 'src/city/entities/city.entity';
 import { Pet } from 'src/pets/entities/pet.entity';
 import { Adoption } from 'src/adoptions/entities/adoptions.entity';
 import { UserInformation } from './entities/user-information.entity';
-import { Role } from './entities/role.entity';
+import { Role } from '../role/entities/role.entity';
+import { CityService } from 'src/city/city.service';
 
 
 @Module({
@@ -15,6 +16,6 @@ import { Role } from './entities/role.entity';
     TypeOrmModule.forFeature([User, UserInformation, Role, City, Pet, Adoption])
   ],
   controllers: [UsersController],
-  providers: [UserService],
+  providers: [UserService, CityService],
 })
 export class UserModule { }

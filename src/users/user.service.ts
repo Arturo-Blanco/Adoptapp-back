@@ -1,40 +1,66 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { FindManyOptions, FindOneOptions, Repository } from 'typeorm';
 import { CreateUserDTO } from './dto/user.dto';
 import { checkEmptyValues, checkValues } from 'src/functions/valuesValidation';
-import { City } from 'src/city/entities/city.entity';
 import { Pet } from 'src/pets/entities/pet.entity';
+import { CityService } from 'src/city/city.service';
+import { City } from 'src/city/entities/city.entity';
+import { UserInformation } from './entities/user-information.entity';
 
 @Injectable()
 export class UserService {
 
   constructor(
+    private readonly cityService: CityService,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    @InjectRepository(City)
-    private readonly cityRepository: Repository<City>,
     @InjectRepository(Pet)
-    private readonly petRepository: Repository<Pet>
+    private readonly petRepository: Repository<Pet>,
+    @InjectRepository(UserInformation)
+    private readonly userInformationRepository: Repository<UserInformation>
   ) { }
 
-  validValues = ['name', 'surname', 'age', 'email', 'phoneNumber', 'address', 'zipCode', 'hasPet', 'livingPlace'];
+  validValues = ['name', 'surname', 'phoneNumber', 'address', 'zipCode'];
 
-  async addUser(userDTO: CreateUserDTO, petId: number): Promise<{ status: number, message: string }> {
-    const { name, surname, email, phoneNumber, address, zipCode, hasPet, livingPlace } = userDTO;
+  async addUser(userDTO: CreateUserDTO): Promise<User> {
+    const { name, surname, phoneNumber, address, zipCode, hasPet, livingPlace } = userDTO;
+
     try {
+
       // Check if required values are missing
       if (!checkValues(userDTO, this.validValues)) {
-        throw new Error('Required fields missing: name, surname, age, email, phoneNumber, address, zipCode, hasPet, livingPlace.');
+        throw new Error('Required fields missing: name, surname, phoneNumber, address, zipCode, hasPet, livingPlace.');
       };
       // Check if empty values are not accepted
       if (!checkEmptyValues(userDTO)) {
         throw new Error('Empty fields are not accepted.');
       }
+      const city: City = await this.cityService.cityByZip(zipCode);
+      const newUser: User = new User(name, surname, phoneNumber, address, livingPlace, hasPet);
+
+      if (!newUser) {
+        throw new Error('Error adding new user.');
+      }
+      newUser.fk_city_id = city.getId();
+      return await this.userRepository.save(newUser);
+    }
+    catch (error) {
+      throw new HttpException({
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+        error: 'Error adding new user',
+        message: error.message,
+      }, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+  /*
+  async addPet(userDTO: CreateUserDTO, petId: number): Promise<{ status: number, message: string }> {
+
+    try {
+
       // Verify the city with its zip code
-      const cityCriteria: FindOneOptions = { where: { zip_code: Number(zipCode) } };
-      const city = await this.cityRepository.findOne(cityCriteria);
+      const city = await this.cityService.cityByZip(zipCode);
       // If the city doesn't exist, throw an error
       if (!city) {
         throw new Error(`There is no city with zip code ${zipCode}.`);
@@ -56,7 +82,7 @@ export class UserService {
       // If user does not exist yet, is created
       if (!user) {
 
-        const newUser: User = new User(name, surname, hasPet);
+        const newUser: User = new User(name, surname, phoneNumber, address, livingPlace, hasPet);
 
         if (!newUser) {
           throw new Error(`Could not get user data.`);
@@ -99,6 +125,7 @@ export class UserService {
       }, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
+  */
   // Function to get all users with their relasionship
   async allUsers(): Promise<User[]> {
     try {
@@ -118,13 +145,13 @@ export class UserService {
     }
   }
   //Function to get user by ID
-  async getUserById(userId: number): Promise<User> {
+  async findById(userId: number): Promise<User> {
     try {
       const criterion: FindOneOptions = { relations: ['pets'], where: { id: userId } };
       const user: User = await this.userRepository.findOne(criterion);
 
       if (!user) {
-        throw new Error(`There is no user with ID ${userId}.`);
+        throw new NotFoundException(`There is no user with ID ${userId}.`);
       }
       return user;
     } catch (error) {
@@ -135,20 +162,32 @@ export class UserService {
       }, HttpStatus.BAD_REQUEST);
     }
   }
+
+  async findEmail(userEmail: string): Promise<UserInformation> {
+    try {
+      const criterion: FindOneOptions = { where: { email: userEmail } };
+      const user: UserInformation = await this.userInformationRepository.findOne(criterion);
+
+      if (!user) {
+        throw new NotFoundException(`There is no user with email ${userEmail}.`);
+      }
+      return user;
+    } catch (error) {
+      throw new HttpException({
+        status: HttpStatus.BAD_REQUEST,
+        message: error.message,
+      }, HttpStatus.BAD_REQUEST);
+    }
+  }
   // Function to delete user by email
   async deleteUser(userEmail: string): Promise<string> {
     try {
-      const criterion: FindOneOptions = { where: { email: userEmail } };
-      const user: User = await this.userRepository.findOne(criterion);
+      const user : UserInformation = await this.findEmail(userEmail);
+      user.is_active = false;
 
-      if (!user) {
-        throw new Error(`The user does not exist in the database.`);
-      }
+      await this.userInformationRepository.save(user);
 
-      const userName = `${user.getSurname()} ${user.getName()}`;
-      await this.userRepository.remove(user);
-
-      return `${userName} was deleted from database.`;
+      return `${userEmail} was deleted from database.`;
 
     } catch (error) {
       throw new HttpException({

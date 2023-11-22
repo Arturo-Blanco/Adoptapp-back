@@ -7,7 +7,7 @@ import { Pet } from 'src/pets/entities/pet.entity';
 import { Adoption } from 'src/adoptions/entities/adoptions.entity';
 import { Complaint } from 'src/complaint/entities/complaint.entity';
 import { Information } from 'src/information/entities/information.entity';
-import { UserInformation } from 'src/clients/entities/user-information.entity';
+import { UserInformation } from 'src/users/entities/user-information.entity';
 
 @Module({
   imports : [

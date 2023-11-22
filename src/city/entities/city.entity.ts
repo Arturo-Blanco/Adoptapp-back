@@ -1,5 +1,5 @@
-import { UserInformation } from 'src/clients/entities/user-information.entity';
 import { Adoption } from "src/adoptions/entities/adoptions.entity";
+import { User } from "src/users/entities/user.entity";
 import { Complaint } from "src/complaint/entities/complaint.entity";
 import { Information } from "src/information/entities/information.entity";
 import { Institution } from 'src/institutions/entities/institution.entity';
@@ -17,8 +17,8 @@ export class City {
     @Column({ unique: true })
     zip_code: number
 
-    @OneToMany(() => UserInformation, user => user.city)
-    users: UserInformation[];
+    @OneToMany(() => User, user => user.city)
+    users: User[];
 
     @OneToMany(() => Adoption, adoption => adoption.city)
     adoption: Adoption[];

@@ -6,7 +6,7 @@ import { CreatePetDTO, PetDTO, UpdatePetDTO } from './dto/pet.dto';
 import { City } from 'src/city/entities/city.entity';
 import { Attribute } from './attributes/entities/attribute.entity';
 import { checkEmptyValues, checkValues } from 'src/functions/valuesValidation';
-import { User } from 'src/clients/entities/user.entity';
+import { User } from 'src/users/entities/user.entity';
 import { Adoption } from 'src/adoptions/entities/adoptions.entity';
 
 @Injectable()

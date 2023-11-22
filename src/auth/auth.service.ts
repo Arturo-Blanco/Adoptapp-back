@@ -1,0 +1,73 @@
+import { BadRequestException, HttpException, HttpStatus, Injectable, UnauthorizedException } from "@nestjs/common";
+import { UserService } from "src/users/user.service";
+import { CreateUserDTO } from "src/users/dto/user.dto";
+import { User } from "src/users/entities/user.entity";
+import { UserInformation } from "src/users/entities/user-information.entity";
+import { DataSource, Repository } from "typeorm";
+import { Role } from "src/role/entities/role.entity";
+import { RoleService } from "src/role/role.service";
+import { LoginDTO } from "./dto/login.dto";
+import { JwtService } from "@nestjs/jwt";
+import { JWTPayload } from "./interfaces/payload.interface";
+import { InjectRepository } from "@nestjs/typeorm";
+
+@Injectable()
+export class AuthService {
+
+    constructor(
+        private readonly dataSource: DataSource,
+        private readonly userService: UserService,
+        private readonly roleService: RoleService,
+        private readonly jwtService: JwtService,
+        @InjectRepository(UserInformation)
+        private readonly userInformationRepository: Repository<UserInformation>
+    ) { }
+
+    async register(userDTO: CreateUserDTO): Promise<any> {
+        const { email, password, roleId } = userDTO;
+
+        try {
+            const user: UserInformation = await this.userInformationRepository.findOne({ where: { email: email } })
+            if (user) {
+                throw new BadRequestException(`Email is already in use.`);
+            }
+            const newRegister: UserInformation = new UserInformation(email.toLocaleLowerCase(), password);
+
+            if (roleId) {
+                const role: Role = await this.roleService.find(roleId);
+                newRegister.role = role;
+            }
+            const newUser: User = await this.userService.addUser(userDTO);
+            newRegister.user = newUser;
+
+            const transaction = await this.dataSource.transaction(async manager => {
+                await manager.save(UserInformation, newRegister)
+                return 'Transacion complete.'
+            })
+            return transaction;
+        }
+        catch (error) {
+            throw new HttpException({
+                status: HttpStatus.INTERNAL_SERVER_ERROR,
+                error: 'Error registering user',
+                message: error.message,
+            }, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    async validateUser({ email, password }: LoginDTO): Promise<boolean> {
+        const user: UserInformation = await this.userInformationRepository.findOne({ where: { email: email } })
+        if(!user) {
+            return false;
+        }
+        return await user.validatePassword(password);
+    }
+
+    async generateAccessToken(email: string) {
+        const user = await this.userService.findEmail(email);
+        const payload: JWTPayload = { userId: user.user_id, userEmail: user.email };
+        return {
+            access_token: this.jwtService.sign(payload),
+        };
+    }
+}
