@@ -14,7 +14,7 @@ export class AuthController {
     }
 
     @Post('login')
-    async login(@Body() loginDTO: LoginDTO) : Promise<{ access_token: string }> {
+    async login(@Body() loginDTO: LoginDTO) : Promise<{ jwt: string }> {
         const valid = await this.authService.validateUser(loginDTO);
         if(!valid) {
             throw new UnauthorizedException('Usuario o contraseña incorrecto.');

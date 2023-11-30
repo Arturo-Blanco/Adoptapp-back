@@ -20,7 +20,9 @@ export class AuthService {
         private readonly roleService: RoleService,
         private readonly jwtService: JwtService,
         @InjectRepository(UserInformation)
-        private readonly userInformationRepository: Repository<UserInformation>
+        private readonly userInformationRepository: Repository<UserInformation>,
+        @InjectRepository(User)
+        private readonly userRepository: Repository<User>
     ) { }
 
     async register(userDTO: CreateUserDTO): Promise<any> {
@@ -57,17 +59,19 @@ export class AuthService {
 
     async validateUser({ email, password }: LoginDTO): Promise<boolean> {
         const user: UserInformation = await this.userInformationRepository.findOne({ where: { email: email } })
-        if(!user) {
+        if (!user) {
             return false;
         }
         return await user.validatePassword(password);
     }
 
     async generateAccessToken(email: string) {
-        const user = await this.userService.findEmail(email);
-        const payload: JWTPayload = { userId: user.user_id, userEmail: user.email };
+        const userInfo = await this.userInformationRepository.findOne({ where: { email: email } });
+        const user = await this.userRepository.findOne({ where: { id: userInfo.user_id } });
+
+        const payload: JWTPayload = { userId: userInfo.user_id, userEmail: userInfo.email, userName: user.name, userSurname: user.surname, userRole: userInfo.role_id };
         return {
-            access_token: this.jwtService.sign(payload),
+            jwt: this.jwtService.sign(payload),
         };
     }
 }

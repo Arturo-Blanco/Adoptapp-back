@@ -9,7 +9,7 @@ export class UserInformation {
     @PrimaryColumn()
     user_id: number;
 
-    @Column({ type: 'boolean', default: true })
+    @Column({ type: 'boolean', default: false })
     is_active: boolean;
 
     @Column()
@@ -36,7 +36,7 @@ export class UserInformation {
     @JoinColumn({ name: 'role_id' })
     role: Role;
 
-    @OneToOne(() => User, user => user.userinformation)
+    @OneToOne(() => User, user => user.userInformation)
     @JoinColumn({ name: 'user_id' })
     user: User;
 

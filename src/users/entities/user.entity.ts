@@ -42,7 +42,7 @@ export class User {
     adoption: Adoption;
 
     @OneToOne(() => UserInformation, userInformation => userInformation.user)
-    userinformation: UserInformation;
+    userInformation: UserInformation;
 
     @ManyToOne(() => City, city => city.users)
     @JoinColumn({ name: 'fk_city_id' })
