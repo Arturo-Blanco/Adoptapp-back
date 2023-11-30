@@ -9,6 +9,7 @@ import { InformationModule } from './information/information.module';
 import { InstitutionModule } from './institutions/institutions.module';
 import { AuthModule } from './auth/auth.module';
 import { RoleModule } from './role/role.module';
+import { NodeMailerModule } from './node-mailer/nodeMailer.module';
 
 @Module({
   imports: [
@@ -30,7 +31,8 @@ import { RoleModule } from './role/role.module';
     InformationModule,
     InstitutionModule,
     AuthModule,
-    RoleModule
+    RoleModule,
+    NodeMailerModule
   ],
   controllers: [],
   providers: [],

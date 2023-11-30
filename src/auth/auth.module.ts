@@ -11,6 +11,7 @@ import { User } from 'src/users/entities/user.entity';
 import { Pet } from 'src/pets/entities/pet.entity';
 import { RoleService } from 'src/role/role.service';
 import { JwtModule } from '@nestjs/jwt';
+import { NodeMailerService } from 'src/node-mailer/nodeMailer.service';
 
 @Module({
     imports: [TypeOrmModule.forFeature([UserInformation, User, Pet, City, Role]),
@@ -21,6 +22,6 @@ import { JwtModule } from '@nestjs/jwt';
                 })
     ],
     controllers: [AuthController],
-    providers: [AuthService, UserService, CityService, RoleService]
+    providers: [AuthService, UserService, CityService, RoleService, NodeMailerService]
 })
 export class AuthModule { }

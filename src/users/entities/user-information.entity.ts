@@ -32,6 +32,9 @@ export class UserInformation {
     @Column({ default: 3 })
     role_id: number;
 
+    @Column({ nullable: true })
+    confirmation_token: string;
+
     @ManyToOne(() => Role, role => role.users)
     @JoinColumn({ name: 'role_id' })
     role: Role;
