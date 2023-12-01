@@ -28,13 +28,13 @@ export class RoleService {
             }, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-    async find(roleId : number) : Promise<Role> {
+    async find(role : string) : Promise<Role> {
         try {
-            const role : Role = await this.roleRepository.findOne({where : { id : roleId}});
-            if(!role) {
-                throw new NotFoundException(`There is no rol with id ${roleId}.`);
+            const isRole : Role = await this.roleRepository.findOne({where : { role : role}});
+            if(!isRole) {
+                throw new NotFoundException(`There is no role ${role}.`);
             }
-            return role;
+            return isRole;
         }
         catch (error) {
             throw new HttpException({

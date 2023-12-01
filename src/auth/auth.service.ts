@@ -1,5 +1,5 @@
 import { ConfirmationTokenService } from './confirmationToken/confirmation-token.service';
-import { BadRequestException, HttpException, HttpStatus, Injectable, UnauthorizedException } from "@nestjs/common";
+import { BadRequestException, HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { UserService } from "src/users/user.service";
 import { CreateUserDTO } from "src/users/dto/user.dto";
 import { User } from "src/users/entities/user.entity";
@@ -9,9 +9,8 @@ import { Role } from "src/role/entities/role.entity";
 import { RoleService } from "src/role/role.service";
 import { LoginDTO } from "./dto/login.dto";
 import { JwtService } from "@nestjs/jwt";
-import { JWTPayload } from "./interfaces/payload.interface";
+import { JWTPayload } from "./interfaces/auth.interface";
 import { InjectRepository } from "@nestjs/typeorm";
-import { NodeMailerService } from "src/node-mailer/nodeMailer.service";
 
 @Injectable()
 export class AuthService {
@@ -29,7 +28,7 @@ export class AuthService {
     ) { }
 
     async register(userDTO: CreateUserDTO): Promise<any> {
-        const { email, password, roleId } = userDTO;
+        const { email, password, role } = userDTO;
         
         try {
             const user: UserInformation = await this.userInformationRepository.findOne({ where: { email: email } })
@@ -39,9 +38,9 @@ export class AuthService {
             }
             const newRegister: UserInformation = new UserInformation(email.toLowerCase(), password);
             
-            if (roleId) {
-                const role: Role = await this.roleService.find(roleId);
-                newRegister.role = role;
+            if (role) {
+                const newRole: Role = await this.roleService.find(role);
+                newRegister.role = newRole;
             }
 
             if (!newRegister) {
@@ -78,12 +77,19 @@ export class AuthService {
     }
 
     async generateAccessToken(email: string) {
-        const userInfo = await this.userInformationRepository.findOne({ where: { email: email } });
+        const userInfo = await this.userInformationRepository.findOne({ where: { email: email }, relations: ['role'] });
         const user = await this.userRepository.findOne({ where: { id: userInfo.user_id } });
 
-        const payload: JWTPayload = { userId: userInfo.user_id, userEmail: userInfo.email, userName: user.name, userSurname: user.surname, userRole: userInfo.role_id };
+        const payload: JWTPayload = { 
+            sub: user.id,
+            role : userInfo.role.role
+        };
         return {
             jwt: this.jwtService.sign(payload),
+            user : {
+                ...user,
+                email : userInfo.email,
+            }
         };
     }
 }
