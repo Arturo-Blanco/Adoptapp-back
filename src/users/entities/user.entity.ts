@@ -1,7 +1,9 @@
 import { Adoption } from "src/adoptions/entities/adoptions.entity";
-import { City } from "src/city/entities/city.entity";
 import { Pet } from "src/pets/entities/pet.entity";
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, ManyToMany, JoinTable, CreateDateColumn, OneToMany } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, ManyToMany, JoinTable, CreateDateColumn, OneToMany, OneToOne } from "typeorm";
+import { UserInformation } from "./user-information.entity";
+import { City } from "src/city/entities/city.entity";
+import { ConfirmationToken } from "src/auth/confirmationToken/entities/confirmation-token.entity";
 
 @Entity({ name: 'users' })
 export class User {
@@ -18,12 +20,6 @@ export class User {
     @Column()
     surname: string;
 
-    @Column()
-    age: number;
-
-    @Column({ unique: true })
-    email: string;
-
     @Column({ unique: true, length: 15 })
     phone_number: string;
 
@@ -31,81 +27,87 @@ export class User {
     address: string;
 
     @Column()
-    has_pet: boolean;
+    living_place: string;
+
+    @Column({ name: 'fk_city_id', nullable: false })
+    fk_city_id: number;
 
     @Column()
-    living_place: string;
+    has_pet: boolean;
 
     @ManyToMany(() => Pet, pet => pet.users)
     @JoinTable({ name: 'interested_users' })
     pets: Pet[];
 
-    @Column({ name: 'fk_city_id', nullable: false })
-    fk_city_id: number;
+    @OneToMany(() => Adoption, adoption => adoption.user)
+    adoption: Adoption;
 
+    @OneToOne(() => UserInformation, userInformation => userInformation.user)
+    userInformation: UserInformation;
+
+    @OneToOne(() => ConfirmationToken, confirmationToken => confirmationToken.user)
+    confirmationToken: ConfirmationToken;
+    
     @ManyToOne(() => City, city => city.users)
     @JoinColumn({ name: 'fk_city_id' })
     city: City;
 
-    @OneToMany(() => Adoption, adoption => adoption.user)
-    adoption: Adoption;
-
-    constructor(name: string, surname: string, age: number, email: string, phoneNumber: string, address: string, hasPet: boolean, livingPlace: string) {
+    constructor(name: string, surname: string, phoneNumber: string, address: string, livingPlace?: string, hasPet?: boolean) {
         this.name = name;
         this.surname = surname;
-        this.age = age;
-        this.email = email;
+        this.has_pet = hasPet;
         this.phone_number = phoneNumber;
         this.address = address;
-        this.has_pet = hasPet;
         this.living_place = livingPlace;
     }
+
+    public getId(): number {
+        return this.id
+    }
+
     public getName(): string {
         return this.name;
     }
-    public getSurname() : string {
+
+    public getSurname(): string {
         return this.surname;
     }
-    public getAge(): number {
-        return this.age
-    }
-    public getZipCode(): City {
-        return this.city
-    }
-    public getEmail(): string {
-        return this.email;
+
+    public getHasPet(): boolean {
+        return this.has_pet;
     }
     public getPhoneNumber(): string {
         return this.phone_number;
     }
+
     public getAddress(): string {
         return this.address;
     }
-    public getHasPet(): boolean {
-        return this.has_pet;
-    }
+
     public getLivingPlace(): string {
         return this.living_place;
     }
+
+    public getZipCode(): City {
+        return this.city
+    }
+
     public getInterestedPets(): Pet[] {
         return this.pets;
     }
-    public setAge(newAge: number): void {
-        this.age = newAge;
-    }
-    public setEmail(newEmail: string): void {
-        this.email = newEmail;
+
+    public setInterestedIn(newPets: Pet[]): void {
+        this.pets = newPets;
     }
     public setPhoneNumber(newPhoneNumber: string): void {
         this.phone_number = newPhoneNumber;
     }
+
     public setAddress(newAddress: string): void {
         this.address = newAddress;
     }
+
     public setLivingPlace(newLivingPlace: string): void {
         this.living_place = newLivingPlace;
-    }
-    public setInterestedIn(newPets: Pet[]): void {
-        this.pets = newPets;
     }
 }

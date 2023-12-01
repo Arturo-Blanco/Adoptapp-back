@@ -1,10 +1,15 @@
+import { UserModule } from './users/user.module';
 import { Module } from '@nestjs/common';
 import { PetsModule } from './pets/pets.module';
-import { UsersModule } from './users/users.module';
 import { ComplaintModule } from './complaint/complaint.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CityModule } from './city/city.module';
 import { AttributesModule } from './pets/attributes/attributes.module';
+import { InformationModule } from './information/information.module';
+import { InstitutionModule } from './institutions/institutions.module';
+import { AuthModule } from './auth/auth.module';
+import { RoleModule } from './role/role.module';
+import { NodeMailerModule } from './node-mailer/nodeMailer.module';
 
 @Module({
   imports: [
@@ -18,7 +23,17 @@ import { AttributesModule } from './pets/attributes/attributes.module';
       "entities": [__dirname + "/**/**/**.entity{.ts,.js}"],
       "synchronize": true,
     }),
-    PetsModule, UsersModule, ComplaintModule, CityModule, AttributesModule],
+    PetsModule,
+    UserModule,
+    ComplaintModule, 
+    CityModule, 
+    AttributesModule, 
+    InformationModule,
+    InstitutionModule,
+    AuthModule,
+    RoleModule,
+    NodeMailerModule
+  ],
   controllers: [],
   providers: [],
 })
