@@ -22,6 +22,7 @@ export class PetsController {
         return await this.petsService.filterPets(pageNumber, specie, location_id, sex);
     }
 
+    
     @Post('addPet')
     async getAddPet(@Body() petDTO: CreatePetDTO): Promise<string> {
         return await this.petsService.addPet(petDTO);

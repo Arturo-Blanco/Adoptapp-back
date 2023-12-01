@@ -8,5 +8,5 @@ export class CreateUserDTO {
     readonly zipCode: number;
     readonly hasPet: boolean;
     readonly livingPlace: string;
-    readonly roleId : number;
+    readonly role : string;
 }

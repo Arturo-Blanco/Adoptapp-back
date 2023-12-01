@@ -1,7 +1,7 @@
 import { BeforeInsert, Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryColumn } from "typeorm";
 import { User } from "./user.entity";
 import { Role } from "../../role/entities/role.entity";
-import { ConfirmationToken } from "src/auth/confirmationToken/entities/confirmation-token.entity";
+import { Exclude } from "@nestjs/class-transformer";
 import * as bcrypt from 'bcrypt';
 
 @Entity({ name: 'users_information' })
@@ -53,6 +53,7 @@ export class UserInformation {
         return this.email;
     }
 
+    @Exclude()
     public getPassword(): string {
         return this.password;
     }

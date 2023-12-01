@@ -10,13 +10,22 @@ import { UserInformation } from './entities/user-information.entity';
 import { Role } from '../role/entities/role.entity';
 import { CityService } from 'src/city/city.service';
 import { ConfirmationToken } from 'src/auth/confirmationToken/entities/confirmation-token.entity';
+import { RoleService } from 'src/role/role.service';
 
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, UserInformation, Role, City, Pet, Adoption, ConfirmationToken])
+    TypeOrmModule.forFeature([
+      User,
+      UserInformation,
+      Role,
+      City,
+      Pet,
+      Adoption,
+      ConfirmationToken
+    ])
   ],
   controllers: [UsersController],
-  providers: [UserService, CityService],
+  providers: [UserService, CityService, RoleService],
 })
 export class UserModule { }

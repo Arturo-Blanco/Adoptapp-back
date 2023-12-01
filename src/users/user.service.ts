@@ -8,12 +8,16 @@ import { Pet } from 'src/pets/entities/pet.entity';
 import { CityService } from 'src/city/city.service';
 import { City } from 'src/city/entities/city.entity';
 import { UserInformation } from './entities/user-information.entity';
+import { RoleDTO } from 'src/role/dto/role.dto';
+import { RoleService } from 'src/role/role.service';
+import { Role } from 'src/role/entities/role.entity';
 
 @Injectable()
 export class UserService {
 
   constructor(
     private readonly cityService: CityService,
+    private readonly roleService : RoleService,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     @InjectRepository(Pet)
@@ -182,7 +186,7 @@ export class UserService {
   // Function to delete user by email
   async deleteUser(userEmail: string): Promise<string> {
     try {
-      const user : UserInformation = await this.findEmail(userEmail);
+      const user: UserInformation = await this.findEmail(userEmail);
       user.is_active = false;
 
       await this.userInformationRepository.save(user);
@@ -234,6 +238,43 @@ export class UserService {
         error: 'Error getting user',
         message: error.message,
       }, HttpStatus.CONFLICT);
+    }
+  }
+
+  async findInformation(userId: number): Promise<UserInformation> {
+    try {
+      const criteria: FindOneOptions = { where: { user_id: userId } , relations : ['role']}
+      const information: UserInformation = await this.userInformationRepository.findOne(criteria);
+      if (!information) {
+        throw new NotFoundException(`There is no user with id ${userId}.`);
+      }
+      return information;
+    }
+    catch (error) {
+      throw new HttpException({
+        status: HttpStatus.CONFLICT,
+        error: 'Error getting user',
+        message: error.message,
+      }, HttpStatus.CONFLICT);
+    }
+  }
+
+  async changeRole (userId : number, role : RoleDTO) : Promise <string> {
+    try {
+      const user : UserInformation = await this.findInformation(userId);
+      const newRole : Role = await this.roleService.find(role.role);
+
+      user.role = newRole;
+      await this.userInformationRepository.save(user);
+
+      return `User role was updated`
+    }
+    catch (error) {
+      throw new HttpException({
+        status: HttpStatus.BAD_REQUEST,
+        error: 'Error updating role',
+        message: error.message,
+      }, HttpStatus.BAD_REQUEST);
     }
   }
 }
