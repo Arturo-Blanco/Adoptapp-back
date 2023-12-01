@@ -6,7 +6,7 @@ export class NodeMailerController {
     constructor(private readonly nodeMailderService : NodeMailerService) {}
 
     @Get() 
-    getSendMail(to: string) : any {
-        return this.nodeMailderService.sendMail(to);
+    getSendMail(to: string, confirmationUrl : string) : any {
+        return this.nodeMailderService.sendMail(to, confirmationUrl);
     }
 }

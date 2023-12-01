@@ -9,11 +9,12 @@ import { Adoption } from 'src/adoptions/entities/adoptions.entity';
 import { UserInformation } from './entities/user-information.entity';
 import { Role } from '../role/entities/role.entity';
 import { CityService } from 'src/city/city.service';
+import { ConfirmationToken } from 'src/auth/confirmationToken/entities/confirmation-token.entity';
 
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, UserInformation, Role, City, Pet, Adoption])
+    TypeOrmModule.forFeature([User, UserInformation, Role, City, Pet, Adoption, ConfirmationToken])
   ],
   controllers: [UsersController],
   providers: [UserService, CityService],

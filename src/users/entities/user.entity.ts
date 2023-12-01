@@ -3,6 +3,7 @@ import { Pet } from "src/pets/entities/pet.entity";
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, ManyToMany, JoinTable, CreateDateColumn, OneToMany, OneToOne } from "typeorm";
 import { UserInformation } from "./user-information.entity";
 import { City } from "src/city/entities/city.entity";
+import { ConfirmationToken } from "src/auth/confirmationToken/entities/confirmation-token.entity";
 
 @Entity({ name: 'users' })
 export class User {
@@ -44,6 +45,9 @@ export class User {
     @OneToOne(() => UserInformation, userInformation => userInformation.user)
     userInformation: UserInformation;
 
+    @OneToOne(() => ConfirmationToken, confirmationToken => confirmationToken.user)
+    confirmationToken: ConfirmationToken;
+    
     @ManyToOne(() => City, city => city.users)
     @JoinColumn({ name: 'fk_city_id' })
     city: City;

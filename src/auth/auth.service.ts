@@ -1,3 +1,4 @@
+import { ConfirmationTokenService } from './confirmationToken/confirmation-token.service';
 import { BadRequestException, HttpException, HttpStatus, Injectable, UnauthorizedException } from "@nestjs/common";
 import { UserService } from "src/users/user.service";
 import { CreateUserDTO } from "src/users/dto/user.dto";
@@ -20,7 +21,7 @@ export class AuthService {
         private readonly userService: UserService,
         private readonly roleService: RoleService,
         private readonly jwtService: JwtService,
-        private readonly nodeMailerService : NodeMailerService,
+        private readonly confirmationTokenService: ConfirmationTokenService,
         @InjectRepository(UserInformation)
         private readonly userInformationRepository: Repository<UserInformation>,
         @InjectRepository(User)
@@ -29,29 +30,34 @@ export class AuthService {
 
     async register(userDTO: CreateUserDTO): Promise<any> {
         const { email, password, roleId } = userDTO;
-
+        
         try {
             const user: UserInformation = await this.userInformationRepository.findOne({ where: { email: email } })
-            if (user && user.is_active === true) {
+            
+            if (user) {
                 throw new BadRequestException(`Email is already in use.`);
             }
-            const newRegister: UserInformation = new UserInformation(email.toLocaleLowerCase(), password);
-
+            const newRegister: UserInformation = new UserInformation(email.toLowerCase(), password);
+            
             if (roleId) {
                 const role: Role = await this.roleService.find(roleId);
                 newRegister.role = role;
             }
-            const newUser: User = await this.userService.addUser(userDTO);
-            newRegister.user = newUser;
 
-            this.nodeMailerService.sendMail(newRegister.email);
+            if (!newRegister) {
+                throw new Error('Error adding information')
+            }
             
             const transaction = await this.dataSource.transaction(async manager => {
-                await manager.save(UserInformation, newRegister)
-                return 'Transacion complete.'
+                const newUser: User = await this.userService.addUser(userDTO);
+                newRegister.user = newUser;
+                await manager.save(UserInformation, newRegister);
+        
+                const token = await this.confirmationTokenService.createToken(newUser);
+                await this.confirmationTokenService.sendConfirmationEmail(email, token.getToken());
+
+                return 'Transaction complete.'
             });
-
-
             return transaction;
         }
         catch (error) {
@@ -65,7 +71,7 @@ export class AuthService {
 
     async validateUser({ email, password }: LoginDTO): Promise<boolean> {
         const user: UserInformation = await this.userInformationRepository.findOne({ where: { email: email } })
-        if (!user || user.is_active === false) {
+        if (!user) {
             return false;
         }
         return await user.validatePassword(password);

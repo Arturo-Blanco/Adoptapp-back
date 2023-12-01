@@ -1,6 +1,7 @@
 import { BeforeInsert, Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryColumn } from "typeorm";
 import { User } from "./user.entity";
 import { Role } from "../../role/entities/role.entity";
+import { ConfirmationToken } from "src/auth/confirmationToken/entities/confirmation-token.entity";
 import * as bcrypt from 'bcrypt';
 
 @Entity({ name: 'users_information' })
@@ -22,7 +23,6 @@ export class UserInformation {
     }
 
     async validatePassword(password: string): Promise<boolean> {
-        console.log(password)
         return await bcrypt.compareSync(password, this.password);
     }
 
@@ -31,9 +31,6 @@ export class UserInformation {
 
     @Column({ default: 3 })
     role_id: number;
-
-    @Column({ nullable: true })
-    confirmation_token: string;
 
     @ManyToOne(() => Role, role => role.users)
     @JoinColumn({ name: 'role_id' })
@@ -46,6 +43,10 @@ export class UserInformation {
     constructor(email: string, password: string) {
         this.email = email;
         this.password = password;
+    }
+
+    public getUserId(): number {
+        return this.user_id;
     }
 
     public getEmail(): string {
@@ -62,5 +63,9 @@ export class UserInformation {
 
     public setPassword(newPassword: string): void {
         this.password = newPassword;
+    }
+    
+    public setState(): void {
+        this.is_active = !this.is_active;
     }
 }
