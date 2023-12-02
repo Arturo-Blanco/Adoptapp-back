@@ -1,5 +1,5 @@
 import { ConfirmationTokenService } from './confirmationToken/confirmation-token.service';
-import { BadRequestException, HttpException, HttpStatus, Injectable } from "@nestjs/common";
+import { BadRequestException, HttpException, HttpStatus, Injectable, UnauthorizedException } from "@nestjs/common";
 import { UserService } from "src/users/user.service";
 import { CreateUserDTO } from "src/users/dto/user.dto";
 import { User } from "src/users/entities/user.entity";
@@ -11,6 +11,7 @@ import { LoginDTO } from "./dto/login.dto";
 import { JwtService } from "@nestjs/jwt";
 import { JWTPayload } from "./interfaces/auth.interface";
 import { InjectRepository } from "@nestjs/typeorm";
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
@@ -29,15 +30,15 @@ export class AuthService {
 
     async register(userDTO: CreateUserDTO): Promise<any> {
         const { email, password, role } = userDTO;
-        
+
         try {
             const user: UserInformation = await this.userInformationRepository.findOne({ where: { email: email } })
-            
+
             if (user) {
                 throw new BadRequestException(`Email is already in use.`);
             }
             const newRegister: UserInformation = new UserInformation(email.toLowerCase(), password);
-            
+
             if (role) {
                 const newRole: Role = await this.roleService.find(role);
                 newRegister.role = newRole;
@@ -46,12 +47,12 @@ export class AuthService {
             if (!newRegister) {
                 throw new Error('Error adding information')
             }
-            
+
             const transaction = await this.dataSource.transaction(async manager => {
                 const newUser: User = await this.userService.addUser(userDTO);
                 newRegister.user = newUser;
                 await manager.save(UserInformation, newRegister);
-        
+
                 const token = await this.confirmationTokenService.createToken(newUser);
                 await this.confirmationTokenService.sendConfirmationEmail(email, token.getToken());
 
@@ -70,26 +71,51 @@ export class AuthService {
 
     async validateUser({ email, password }: LoginDTO): Promise<boolean> {
         const user: UserInformation = await this.userInformationRepository.findOne({ where: { email: email } })
-        if (!user) {
-            return false;
+        if (!user || !(await this.validatePassword(password, user.password))) {
+            throw new UnauthorizedException('Invalid user or password');
         }
-        return await user.validatePassword(password);
+        return true;
     }
 
     async generateAccessToken(email: string) {
         const userInfo = await this.userInformationRepository.findOne({ where: { email: email }, relations: ['role'] });
         const user = await this.userRepository.findOne({ where: { id: userInfo.user_id } });
 
-        const payload: JWTPayload = { 
+        const payload: JWTPayload = {
             sub: user.id,
-            role : userInfo.role.role
+            role: userInfo.role.role
         };
         return {
             jwt: this.jwtService.sign(payload),
-            user : {
+            user: {
                 ...user,
-                email : userInfo.email,
+                email: userInfo.email,
             }
         };
+    }
+
+    async resetPassword(email: string): Promise<any> {
+        try {
+            const user = await this.userInformationRepository.findOne({ where: { email: email }, relations: ['user'] })
+            const token = await this.confirmationTokenService.createToken(user.user);
+            await this.confirmationTokenService.sendConfirmationEmail(email, token.getToken());
+        } catch (error) {
+            throw new HttpException({
+                status: HttpStatus.INTERNAL_SERVER_ERROR,
+                error: 'Error registering user',
+                message: error.message,
+            }, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    
+    async hasPassword(password : string) {
+        const salt = await bcrypt.genSalt();
+        const encriptPassword = await bcrypt.hash(password, salt);
+        return encriptPassword
+    }
+
+    async validatePassword(passwordEntered : string, hashedPassword: string): Promise<boolean> {
+        return await bcrypt.compare(passwordEntered, hashedPassword);
     }
 }

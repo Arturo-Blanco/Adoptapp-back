@@ -11,6 +11,8 @@ import { Role } from '../role/entities/role.entity';
 import { CityService } from 'src/city/city.service';
 import { ConfirmationToken } from 'src/auth/confirmationToken/entities/confirmation-token.entity';
 import { RoleService } from 'src/role/role.service';
+import { ConfirmationTokenService } from 'src/auth/confirmationToken/confirmation-token.service';
+import { NodeMailerService } from 'src/node-mailer/nodeMailer.service';
 
 
 @Module({
@@ -26,6 +28,12 @@ import { RoleService } from 'src/role/role.service';
     ])
   ],
   controllers: [UsersController],
-  providers: [UserService, CityService, RoleService],
+  providers: [
+    UserService,
+    CityService,
+    RoleService,
+    ConfirmationTokenService,
+    NodeMailerService
+  ],
 })
 export class UserModule { }

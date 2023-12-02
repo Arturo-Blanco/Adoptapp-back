@@ -18,10 +18,28 @@ export class NodeMailerService {
 
     async sendMail(to: string, confirmationURL : string): Promise<any> {
         try {
+            let subject = '';
+            let message = '';
+
+            if(confirmationURL.includes('confirm_acount_token')) {
+                subject = 'Confirmacion de cuenta'
+                message =  
+                `<p>Haga click en el siguiente enlace para confirmar su dirección de email.</p>
+                <p><a href="${confirmationURL}">${confirmationURL}</a></p>
+                <p>Este correo se generó automáticamente.</p>`
+            }
+            else if(confirmationURL.includes('reset_password_token')) {
+                subject= 'Restablecimiento de contraseña'
+                message =  
+                `<p>
+                Acabas de recibir este correo por que alguien solicito un restablecimiento de contraseña de tu cuenta de Adoptapp. Haga click en el siguiente enlace para continuar.</p>
+                <p><a href="${confirmationURL}">${confirmationURL}</a></p>
+                <p>Este correo se generó automáticamente, si no solicitaste el cambio de contraseña desestima este mensaje.</p>`
+            }
             await this.transporter.sendMail({
                 to: to,
                 from: '"AdoptApp" blanco_a@hotmail.com.ar',
-                subject: 'Confirmación de email',
+                subject: subject,
                 html: `
             <html>
                 <head>
@@ -42,9 +60,7 @@ export class NodeMailerService {
                     </style>
                 </head>
             <body>
-                <p>Haga click en el siguiente enlace para confirmar su dirección de email.</p>
-                <p><a href="${confirmationURL}">${confirmationURL}</a></p>
-                <p>Este correo se generó automáticamente.</p>
+                ${message}
             </body>
             </html>
                 `

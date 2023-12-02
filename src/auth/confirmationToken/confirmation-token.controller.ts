@@ -1,13 +1,12 @@
 import { Controller, Get, Param, Query } from "@nestjs/common";
 import { ConfirmationTokenService } from "./confirmation-token.service";
 
-@Controller('confirm')
+@Controller('account')
 export class ConfirmationTokenController {
     constructor(private readonly confirmationTokenService: ConfirmationTokenService) { }
 
-    @Get()
-    async getConfirmEmail(@Query('token') token : string) : Promise <boolean> {
+    @Get('confirm')
+    async getConfirmEmail(@Query('confirm_acount_token') token : string) : Promise <boolean> {
         return await this.confirmationTokenService.confirmationEmail(token);
     }
-    
 }
