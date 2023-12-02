@@ -1,3 +1,5 @@
+import { IsEmail, IsNotEmpty } from "class-validator";
+
 export class CreateUserDTO {
     readonly name: string;
     readonly surname: string;
@@ -9,4 +11,9 @@ export class CreateUserDTO {
     readonly hasPet: boolean;
     readonly livingPlace: string;
     readonly role : string;
+}
+
+export class UserWithPet {
+    readonly userId : number;
+    readonly petId : number;
 }

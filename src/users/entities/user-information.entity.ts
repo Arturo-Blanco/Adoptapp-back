@@ -1,8 +1,7 @@
-import { BeforeInsert, Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryColumn } from "typeorm";
 import { User } from "./user.entity";
 import { Role } from "../../role/entities/role.entity";
 import { Exclude } from "@nestjs/class-transformer";
-import * as bcrypt from 'bcrypt';
 
 @Entity({ name: 'users_information' })
 export class UserInformation {
@@ -15,16 +14,6 @@ export class UserInformation {
 
     @Column()
     password: string;
-
-    @BeforeInsert()
-    async hasPassword() {
-        const salt = await bcrypt.genSalt();
-        this.password = await bcrypt.hash(this.password, salt)
-    }
-
-    async validatePassword(password: string): Promise<boolean> {
-        return await bcrypt.compareSync(password, this.password);
-    }
 
     @Column({ unique: true })
     email: string;

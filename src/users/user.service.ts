@@ -1,8 +1,8 @@
-import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { FindManyOptions, FindOneOptions, Repository } from 'typeorm';
-import { CreateUserDTO } from './dto/user.dto';
+import { CreateUserDTO, UserWithPet } from './dto/user.dto';
 import { checkEmptyValues, checkValues } from 'src/functions/valuesValidation';
 import { Pet } from 'src/pets/entities/pet.entity';
 import { CityService } from 'src/city/city.service';
@@ -11,19 +11,26 @@ import { UserInformation } from './entities/user-information.entity';
 import { RoleDTO } from 'src/role/dto/role.dto';
 import { RoleService } from 'src/role/role.service';
 import { Role } from 'src/role/entities/role.entity';
+import { ConfirmationTokenService } from 'src/auth/confirmationToken/confirmation-token.service';
+import { ConfirmationToken } from 'src/auth/confirmationToken/entities/confirmation-token.entity';
+import { LoginDTO } from 'src/auth/dto/login.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
 
   constructor(
     private readonly cityService: CityService,
-    private readonly roleService : RoleService,
+    private readonly roleService: RoleService,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     @InjectRepository(Pet)
     private readonly petRepository: Repository<Pet>,
+    private readonly confirmationTokenService: ConfirmationTokenService,
     @InjectRepository(UserInformation)
-    private readonly userInformationRepository: Repository<UserInformation>
+    private readonly userInformationRepository: Repository<UserInformation>,
+    @InjectRepository(ConfirmationToken)
+    private readonly confirmationTokenRepository: Repository<ConfirmationToken>
   ) { }
 
   validValues = ['name', 'surname', 'phoneNumber', 'address', 'zipCode'];
@@ -58,18 +65,10 @@ export class UserService {
       }, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
-  /*
-  async addPet(userDTO: CreateUserDTO, petId: number): Promise<{ status: number, message: string }> {
+
+  async addPet({ userId, petId }: UserWithPet): Promise<{ status: number, message: string }> {
 
     try {
-
-      // Verify the city with its zip code
-      const city = await this.cityService.cityByZip(zipCode);
-      // If the city doesn't exist, throw an error
-      if (!city) {
-        throw new Error(`There is no city with zip code ${zipCode}.`);
-      }
-
       if (petId === null) {
         throw new Error('No pet information requested.');
       }
@@ -81,23 +80,8 @@ export class UserService {
         throw new Error(`There is no pet with ID ${petId}.`);
       }
 
-      const emailCriteria: FindOneOptions = { where: { email: email }, relations: ['pets'] };
-      const user: User = await this.userRepository.findOne(emailCriteria);
-      // If user does not exist yet, is created
-      if (!user) {
+      const user: User = await this.findById(userId);
 
-        const newUser: User = new User(name, surname, phoneNumber, address, livingPlace, hasPet);
-
-        if (!newUser) {
-          throw new Error(`Could not get user data.`);
-        };
-        newUser.pets = [existingPet];
-        existingPet.setInterested();
-
-        await this.userRepository.save(newUser);
-        await this.petRepository.save(existingPet);
-        return { status: HttpStatus.CREATED, message: `User ${newUser.getSurname()} ${newUser.getName()} was added.` };
-      }
       // if user exist, is verified if does not have more than 3 requested pet
       if (user && user.pets.length > 2) {
         return { status: HttpStatus.BAD_REQUEST, message: 'Maximum adoption requests reached.' };
@@ -129,7 +113,6 @@ export class UserService {
       }, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
-  */
   // Function to get all users with their relasionship
   async allUsers(): Promise<User[]> {
     try {
@@ -166,10 +149,10 @@ export class UserService {
       }, HttpStatus.BAD_REQUEST);
     }
   }
-
+  //Function to get user by email
   async findEmail(userEmail: string): Promise<UserInformation> {
     try {
-      const criterion: FindOneOptions = { where: { email: userEmail } };
+      const criterion: FindOneOptions = { where: { email: userEmail }, relations: ['user'] };
       const user: UserInformation = await this.userInformationRepository.findOne(criterion);
 
       if (!user) {
@@ -202,13 +185,14 @@ export class UserService {
     }
   }
   //Function to remove a requested pet
-  async removePet(userEmail: string, petId: number): Promise<string> {
+  async removePet({ userId, petId }: UserWithPet): Promise<string> {
     try {
-      const criterion: FindOneOptions = { where: { email: userEmail }, relations: ['pets'] };
-      const user: User = await this.userRepository.findOne(criterion);
+      const user: User = await this.findById(userId);
+      const petCriteria: FindOneOptions = { where: { id: petId } };
+      const existingPet = await this.petRepository.findOne(petCriteria);
 
-      if (!user) {
-        throw new Error(`The user does not exist in the database.`);
+      if (!existingPet) {
+        throw new Error(`There is no pet with ID ${petId}.`);
       }
 
       const requestedPet = user.pets.map(pet => pet.id);
@@ -224,12 +208,16 @@ export class UserService {
         const petCriteria: FindManyOptions = { where: requestedPet.map(petId => ({ id: petId })) };
         const newPets = await this.petRepository.find(petCriteria);
         user.setInterestedIn(newPets);
+
         // If the user does not have a requested pet, an empty array is assigned
         if (requestedPet.length === 0) {
           user.pets = [];
         }
+        existingPet.interested -= 1;
 
+        await this.petRepository.save(existingPet);
         await this.userRepository.save(user);
+
         return `The pet with id ${petId} was remove from user ${user.getSurname()} ${user.getName()}.`
       }
     } catch (error) {
@@ -240,10 +228,10 @@ export class UserService {
       }, HttpStatus.CONFLICT);
     }
   }
-
+  //Function to get user information by ID
   async findInformation(userId: number): Promise<UserInformation> {
     try {
-      const criteria: FindOneOptions = { where: { user_id: userId } , relations : ['role']}
+      const criteria: FindOneOptions = { where: { user_id: userId }, relations: ['role'] }
       const information: UserInformation = await this.userInformationRepository.findOne(criteria);
       if (!information) {
         throw new NotFoundException(`There is no user with id ${userId}.`);
@@ -258,11 +246,11 @@ export class UserService {
       }, HttpStatus.CONFLICT);
     }
   }
-
-  async changeRole (userId : number, role : RoleDTO) : Promise <string> {
+  //Function to change the user role
+  async changeRole(userId: number, role: RoleDTO): Promise<string> {
     try {
-      const user : UserInformation = await this.findInformation(userId);
-      const newRole : Role = await this.roleService.find(role.role);
+      const user: UserInformation = await this.findInformation(userId);
+      const newRole: Role = await this.roleService.find(role.role);
 
       user.role = newRole;
       await this.userInformationRepository.save(user);
@@ -277,4 +265,53 @@ export class UserService {
       }, HttpStatus.BAD_REQUEST);
     }
   }
+
+  //funtion to restore pass
+  async restorePass({ email }: LoginDTO): Promise<string> {
+    try {
+      const user: UserInformation = await this.findEmail(email);
+      const token = await this.confirmationTokenService.createToken(user.user);
+      await this.confirmationTokenService.sendResetPassword(email, token.getToken());
+
+      return 'Mail sent'
+    }
+    catch (error) {
+      throw new HttpException({
+        status: HttpStatus.BAD_REQUEST,
+        error: 'Error resetting password',
+        message: error.message,
+      }, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+
+  // function to change password
+  async changePassword(token: string, { password }: LoginDTO): Promise<string> {
+    try {
+      const existingToken = await this.confirmationTokenRepository.findOne({ where: { token: token } })
+
+      if (!existingToken) {
+        throw new UnauthorizedException('Token is expired.')
+      }
+
+      const user: UserInformation = await this.userInformationRepository.findOne({ where: { user_id: existingToken.user_id } })
+
+      const salt = await bcrypt.genSalt();
+      const encriptPassword = await bcrypt.hash(password, salt);
+
+      user.password = encriptPassword;
+      await this.userInformationRepository.save(user);
+      await this.confirmationTokenRepository.remove(existingToken);
+
+      return 'Password restored.'
+    }
+    catch (error) {
+      throw new HttpException({
+        status: HttpStatus.BAD_REQUEST,
+        error: 'Error updating role',
+        message: error.message,
+      }, HttpStatus.BAD_REQUEST);
+    }
+  }
+
 }

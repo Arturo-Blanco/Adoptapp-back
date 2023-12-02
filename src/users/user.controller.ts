@@ -1,6 +1,6 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, UseGuards, Query } from '@nestjs/common';
 import { UserService } from './user.service';
-import { CreateUserDTO } from './dto/user.dto';
+import { CreateUserDTO, UserWithPet } from './dto/user.dto';
 import { User } from './entities/user.entity';
 import { UserInformation } from './entities/user-information.entity';
 import { PublicAccess } from 'src/auth/decorators/public.decorator';
@@ -9,6 +9,7 @@ import { Roles } from 'src/auth/decorators/roles.decorator';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { AdminAccess } from 'src/auth/decorators/admin.decorator';
 import { RoleDTO } from 'src/role/dto/role.dto';
+import { LoginDTO } from 'src/auth/dto/login.dto';
 
 @Controller('user')
 @UseGuards(AuthGuard, RolesGuard)
@@ -18,6 +19,18 @@ export class UsersController {
   @Post('addUser')
   async getAddUser(@Body() userDTO: CreateUserDTO): Promise<User> {
     return await this.userService.addUser(userDTO);
+  }
+
+  @PublicAccess()
+  @Post('addPet')
+  async getAddPet(@Body() body: UserWithPet): Promise<{ status: number, message: string }> {
+    return await this.userService.addPet(body)
+  }
+
+  @PublicAccess()
+  @Post('restore/password')
+  async getRestorePass(@Body() userEmail  : LoginDTO): Promise<string> {
+    return await this.userService.restorePass(userEmail);
   }
 
   @Get('all')
@@ -41,14 +54,21 @@ export class UsersController {
     return await this.userService.deleteUser(userEmail);
   }
 
-  @Delete('removePet/:userEmail/:petId')
-  async getDeletePet(@Param('userEmail') userEmail: string, @Param('petId', ParseIntPipe) petId: number): Promise<string> {
-    return await this.userService.removePet(userEmail, petId);
+
+  @Delete('removePet')
+  async getDeletePet(@Body() body: UserWithPet): Promise<string> {
+    return await this.userService.removePet(body);
   }
 
-  @PublicAccess()
+  @AdminAccess()
   @Patch('updateRole/:userId')
   async getUpdateRole(@Param('userId', ParseIntPipe) userId: number, @Body() role: RoleDTO): Promise<string> {
     return await this.userService.changeRole(userId, role);
+  }
+
+  @PublicAccess()
+  @Patch('password/edit')
+  async getChangePassword(@Query('reset_password_token') token: string, @Body() newPassword: LoginDTO): Promise<string> {
+      return await this.userService.changePassword(token, newPassword)
   }
 }
