@@ -16,7 +16,7 @@ export class ImageService {
                 .jpeg({ quality: 50 })
                 .toBuffer()
         } catch (error) {
-            console.error('Error al procesar la imagen:', error);
+            console.error('Error al procesar la imagen:', error.message);
         }
     }
 }
