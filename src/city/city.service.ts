@@ -70,7 +70,7 @@ export class CityService {
   //function to return a city by id
   async findById(cityId: number): Promise<City> {
     try {
-      const criterion: FindOneOptions = { where: { id: cityId } };
+      const criterion: FindOneOptions = { where: { zip_code: cityId } };
       const city: City = await this.cityRepository.findOne(criterion);
 
       if (!city) {
