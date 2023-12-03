@@ -111,4 +111,22 @@ export class ComplaintTypeService {
             }, HttpStatus.BAD_REQUEST);
         }
     }
+
+    async findByName(complaintType: string): Promise<ComplaintType> {
+        try {
+            const criterion: FindOneOptions = { where: { type: complaintType } };
+            const result: ComplaintType = await this.complaintTypeRepository.findOne(criterion);
+            if (!result) {
+                throw new NotFoundException(`There is no complaint type with name: ${complaintType}.`);
+            }
+            return result;
+        }
+        catch (error) {
+            console.log('error findByName function');
+            throw new HttpException({
+                status: HttpStatus.BAD_REQUEST,
+                error: error.message
+            }, HttpStatus.BAD_REQUEST);
+        }
+    }
 }

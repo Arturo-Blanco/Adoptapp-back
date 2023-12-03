@@ -25,6 +25,7 @@ export class ComplainantService {
             return await this.complainantRepository.save(newComplainant);
         }
         catch (error) {
+            console.log(error)
             throw new HttpException({
                 status: HttpStatus.BAD_REQUEST,
                 error: error.message
@@ -96,7 +97,8 @@ export class ComplainantService {
             const criterion: FindOneOptions = { where: { email: complainantEmail.toLocaleLowerCase() } };
             const complainant: Complainant = await this.complainantRepository.findOne(criterion);
             if (!complainant) {
-                throw new NotFoundException(`There is no complainant with email ${complainantEmail}.`);
+                return null;
+                // throw new NotFoundException(`There is no complainant with email ${complainantEmail}.`);
             }
             return complainant;
         }

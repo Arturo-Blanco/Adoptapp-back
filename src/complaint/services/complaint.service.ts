@@ -28,8 +28,9 @@ export class ComplaintService {
           phoneNumber
         }
         const complainant : Complainant = await this.complainantService.createComplainant(complainantDTO);
-        const city : City = await this.cityService.findById(zipCode);
-        const type : ComplaintType = await this.complaintTypeService.findById(complaintType);
+        const city : City = await this.cityService.cityByZip(zipCode);
+        const type : ComplaintType = await this.complaintTypeService.findByName(complaintType);
+        
 
         const newComplaint : Complaint = new Complaint(description,filePath,petSpecie,petName,petAge);
         if(!newComplaint){
@@ -38,7 +39,7 @@ export class ComplaintService {
         newComplaint.complainant = complainant;
         newComplaint.city = city;
         newComplaint.complaintType = type;
-
+        
         return await this.complaintRepository.save(newComplaint);
     }
     catch (error) {
@@ -48,6 +49,23 @@ export class ComplaintService {
       }, HttpStatus.BAD_REQUEST);
     }
   }
+
+  
+  async findAll(): Promise<Complaint[]> {
+    try {
+        const complaints: Complaint[] = await this.complaintRepository.find();
+        if (!complaints) {
+            throw new Error('Error getting complainants.');
+        }
+        return complaints;
+    }
+    catch (error) {
+        throw new HttpException({
+            status: HttpStatus.BAD_REQUEST,
+            error: error.message
+        }, HttpStatus.BAD_REQUEST);
+    }
+}
 
   findOne(id: number) {
     return `This action returns a #${id} complaint`;
