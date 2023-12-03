@@ -10,7 +10,7 @@ export class CreateComplaintDTO {
     readonly petName? : string;
     readonly petSpecie? : string;
     readonly petAge? : number;
-    readonly complaintType: number;
+    readonly complaintType: string;
     readonly zipCode: number;
     readonly email: string;
     readonly phoneNumber: string;
