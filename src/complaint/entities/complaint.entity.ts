@@ -17,14 +17,14 @@ export class Complaint {
     @Column()
     img_url: string;
 
-    @Column()
-    pet_name : string;
+    @Column({ nullable: true })
+    pet_name: string;
 
-    @Column()
-    pet_specie : string;
+    @Column({ nullable: true })
+    pet_specie: string;
 
-    @Column()
-    pet_age : number;
+    @Column({ nullable: true })
+    pet_age: number;
     
     @Column()
     fk_complaint_type_id: number;
