@@ -5,7 +5,6 @@ import { User } from './entities/user.entity';
 import { UserInformation } from './entities/user-information.entity';
 import { PublicAccess } from 'src/auth/decorators/public.decorator';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
-import { Roles } from 'src/auth/decorators/roles.decorator';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { AdminAccess } from 'src/auth/decorators/admin.decorator';
 import { RoleDTO } from 'src/role/dto/role.dto';

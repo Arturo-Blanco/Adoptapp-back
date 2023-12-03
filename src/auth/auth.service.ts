@@ -37,7 +37,9 @@ export class AuthService {
             if (user) {
                 throw new BadRequestException(`Email is already in use.`);
             }
-            const newRegister: UserInformation = new UserInformation(email.toLowerCase(), password);
+
+            const encriptedPassword = await this.hasPassword(password);
+            const newRegister: UserInformation = new UserInformation(email.toLowerCase(), encriptedPassword);
 
             if (role) {
                 const newRole: Role = await this.roleService.find(role);
