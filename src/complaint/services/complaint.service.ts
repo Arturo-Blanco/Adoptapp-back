@@ -29,7 +29,6 @@ export class ComplaintService {
   async createComplaint(file: Express.Multer.File, createComplaintDTO: CreateComplaintDTO): Promise<any> {
     const { complaintDescription, petName, petSpecie, petAge, typeOfComplaint, zipCode, email, phoneNumber, showComplaint } = createComplaintDTO;
 
-    console.log(createComplaintDTO)
     try {
       const complainantDTO: ComplainantDTO = {
         email,
@@ -49,7 +48,6 @@ export class ComplaintService {
         throw new Error('Error adding new complaint.');
       }
 
-      console.log(newComplaint)
       // File name is change to a unique id
       const newFileName = `${uuid4()}.jpeg`;
       // File is process

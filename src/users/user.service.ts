@@ -48,7 +48,7 @@ export class UserService {
       if (!checkEmptyValues(userDTO)) {
         throw new Error('Empty fields are not accepted.');
       }
-      const city: City = await this.cityService.cityByZip(zipCode);
+      const city: City = await this.cityService.findByZip(zipCode);
       const newUser: User = new User(name, surname, phoneNumber, address, livingPlace, hasPet);
 
       if (!newUser) {
@@ -75,22 +75,23 @@ export class UserService {
 
       const petCriteria: FindOneOptions = { where: { id: petId } };
       const existingPet = await this.petRepository.findOne(petCriteria);
-
-      if (!existingPet) {
-        throw new Error(`There is no pet with ID ${petId}.`);
-      }
-
       const user: User = await this.findById(userId);
 
       // if user exist, is verified if does not have more than 3 requested pet
       if (user && user.pets.length > 2) {
-        return { status: HttpStatus.BAD_REQUEST, message: 'Maximum adoption requests reached.' };
+        return {
+          status: HttpStatus.BAD_REQUEST,
+          message: 'Maximum adoption requests reached.'
+        };
       } else {
 
         const petRequested = user.pets.map(pet => pet.id);
 
         if (petRequested.includes(petId)) {
-          return { status: HttpStatus.BAD_REQUEST, message: 'You are already registered to adopt this pet.' };
+          return {
+            status: HttpStatus.BAD_REQUEST,
+            message: 'You are already registered to adopt this pet.'
+          };
         } else {
           petRequested.push(petId);
         }
@@ -103,7 +104,10 @@ export class UserService {
 
         await this.userRepository.save(user);
         await this.petRepository.save(existingPet);
-        return { status: HttpStatus.OK, message: `${user.getSurname()} ${user.getName()} is interested in adopting another pet.` }
+        return { 
+          status: HttpStatus.OK, 
+          message: `${user.getSurname()} ${user.getName()} is interested in adopting another pet.` 
+        }
       }
     } catch (error) {
       throw new HttpException({

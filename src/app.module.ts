@@ -40,7 +40,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     InstitutionModule,
     AuthModule,
     RoleModule,
-    NodeMailerModule
+    NodeMailerModule,
+    ComplaintModule
   ],
   controllers: [],
   providers: [],

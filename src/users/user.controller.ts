@@ -68,6 +68,6 @@ export class UsersController {
   @PublicAccess()
   @Patch('password/edit')
   async getChangePassword(@Query('reset_password_token') token: string, @Body() newPassword: LoginDTO): Promise<string> {
-      return await this.userService.changePassword(token, newPassword)
+      return await this.userService.changePassword(token, newPassword);
   }
 }
