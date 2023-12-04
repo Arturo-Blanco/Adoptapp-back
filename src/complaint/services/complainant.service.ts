@@ -14,20 +14,13 @@ export class ComplainantService {
     async createComplainant(createComplainantDTO: ComplainantDTO): Promise<Complainant> {
         const { email, phoneNumber } = createComplainantDTO;
         try {
-            const complainant: Complainant = await this.findByEmail(email.toLocaleLowerCase());
-            if (complainant) {
-                return complainant;
-            }
             const newComplainant: Complainant = new Complainant(email.toLocaleLowerCase(), phoneNumber);
-            if (!newComplainant) {
-                throw new Error('Error adding new complainant.');
-            }
             return await this.complainantRepository.save(newComplainant);
         }
         catch (error) {
             throw new HttpException({
                 status: HttpStatus.BAD_REQUEST,
-                error: error.message
+                error: 'Error creating complainant' + error.message
             }, HttpStatus.BAD_REQUEST);
         }
     }
@@ -95,9 +88,6 @@ export class ComplainantService {
         try {
             const criterion: FindOneOptions = { where: { email: complainantEmail.toLocaleLowerCase() } };
             const complainant: Complainant = await this.complainantRepository.findOne(criterion);
-            if (!complainant) {
-                throw new NotFoundException(`There is no complainant with email ${complainantEmail}.`);
-            }
             return complainant;
         }
         catch (error) {

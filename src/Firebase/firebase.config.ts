@@ -7,6 +7,6 @@ const firebaseConfig = {
     storageBucket: "adoptapp-aed60.appspot.com",
     messagingSenderId: "271490375697",
     appId: "1:271490375697:web:7ddecc5de2e10ecfc691b0"
-};
+  }; 
 // Initialize Firebase
 export const app = initializeApp(firebaseConfig);

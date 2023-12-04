@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity,OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Complaint } from "./complaint.entity";
 
 @Entity({ name: 'complainants' })
