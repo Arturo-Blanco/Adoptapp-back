@@ -52,9 +52,9 @@ export class CityService {
     try {
       const criterion: FindOneOptions = { where: { zip_code: zipCode } };
       const city: City = await this.cityRepository.findOne(criterion);
-
-      if (!city) {
-        throw new Error(`There is no city with zip code ${zipCode}.`);
+      if (!city || city == null) {
+        console.log('No se encontro la ciudad')
+        throw new Error(`There is no city with zip code ${zipCode}.`);    
       }
       return city;
 
