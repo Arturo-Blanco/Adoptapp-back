@@ -19,7 +19,7 @@ export class CityController {
 
   @Get('zipCode/:zipCode')
   async getByZip(@Param('zipCode', ParseIntPipe) zipCode: number): Promise<City> {
-    return await this.cityService.cityByZip(zipCode);
+    return await this.cityService.findByZip(zipCode);
   }
 
   @Get('id/:cityId')

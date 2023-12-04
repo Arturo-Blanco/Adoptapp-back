@@ -45,7 +45,7 @@ export class ConfirmationTokenService {
         }
     }
 
-    async confirmationEmail(token: string): Promise<boolean> {
+    async confirmationEmail(token: string): Promise<string> {
         try {
             const confirmationToken = await this.findToken(token);
 
@@ -54,9 +54,9 @@ export class ConfirmationTokenService {
                 user.setState();
                 await this.userInformationRepository.save(user);
                 await this.confirmationTokenRepository.remove(confirmationToken);
-                return true;
+                return 'Email confimado, ya puedes ingresar a tu cuenta de Adoptapp.';
             }
-            return false;
+            return 'No se pudo confirmar el email.';
         }
         catch (error) {
             throw new Error('Failed to confirm email' + error);
@@ -65,7 +65,7 @@ export class ConfirmationTokenService {
 
     async sendResetPassword(email: string, token: string): Promise<boolean> {
         try {
-            const confirmationLink = `http://localhost:3001/user/password/edit?reset_password_token=${token}`;
+            const confirmationLink = `http://localhost:5173/user/password/edit?reset_password_token=${token}`;
             return await this.nodeMailerService.sendMail(email, confirmationLink);
         }
         catch (error) {

@@ -48,7 +48,7 @@ export class CityService {
   }
 
   //function to return a city by zip code
-  async cityByZip(zipCode: number): Promise<City> {
+  async findByZip(zipCode: number): Promise<City> {
     try {
       const criterion: FindOneOptions = { where: { zip_code: zipCode } };
       const city: City = await this.cityRepository.findOne(criterion);

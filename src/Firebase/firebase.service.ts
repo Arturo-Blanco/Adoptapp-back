@@ -23,7 +23,7 @@ export class FirebaseStorageService {
         } catch (error) {
             new HttpException({
                 status: HttpStatus.CONFLICT,
-                error: 'Error en la carga de la imagen' + error
+                error: 'Error uploading image' + error
             }, HttpStatus.BAD_REQUEST);
         }
     }

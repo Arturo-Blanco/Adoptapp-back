@@ -1,13 +1,19 @@
 import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Pet } from './entities/pet.entity';
 import { FindManyOptions, FindOneOptions, Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+
 import { CreatePetDTO, PetDTO, UpdatePetDTO } from './dto/pet.dto';
-import { City } from 'src/city/entities/city.entity';
-import { Attribute } from './attributes/entities/attribute.entity';
+
 import { checkEmptyValues, checkValues } from 'src/functions/valuesValidation';
+
+import { ImageService } from 'src/Sharp/image.service';
+import { FirebaseStorageService } from 'src/Firebase/firebase.service';
+
+import { City } from 'src/city/entities/city.entity';
+import { Pet } from './entities/pet.entity';
 import { User } from 'src/users/entities/user.entity';
 import { Adoption } from 'src/adoptions/entities/adoptions.entity';
+import { Attribute } from './attributes/entities/attribute.entity';
 
 @Injectable()
 export class PetsService {
@@ -22,12 +28,14 @@ export class PetsService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     @InjectRepository(Adoption)
-    private readonly adoptionRepository: Repository<Adoption>
+    private readonly adoptionRepository: Repository<Adoption>,
+    private readonly imageService: ImageService,
+    private readonly firebaseService: FirebaseStorageService
   ) { }
 
   validValues = ['name', 'specie', 'sex', 'age', 'attributes', 'description', 'urlImg', 'institution_id'];
   // Function to add a new pet
-  async addPet(petDTO: CreatePetDTO): Promise<string> {
+  async addPet( petDTO: CreatePetDTO): Promise<string> {
     const { name, specie, sex, age, description, attributes, urlImg, institution_id } = petDTO;
 
     try {
@@ -116,7 +124,7 @@ export class PetsService {
   async olderPets(): Promise<PetDTO[]> {
     try {
       const criterion: FindManyOptions = {
-        relations: ['attributes', 'city'],
+        relations: ['attributes', 'institution'],
         order: {
           creation_date: 'DESC',
         },
@@ -139,8 +147,8 @@ export class PetsService {
         attributes: pet.attributes.map(attribute => (attribute.name)),
         description: pet.description,
         urlImg: pet.url_img,
-        institution : pet.institution.name,
         interested: pet.interested,
+        institution : pet.institution.name
       }));
       return petData;
 

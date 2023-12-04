@@ -16,9 +16,25 @@ import { ImageService } from 'src/Sharp/image.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Complaint, ComplaintType, City, Complainant])
+    TypeOrmModule.forFeature([
+      Complaint,
+      ComplaintType,
+      City,
+      Complainant
+    ])
   ],
-  controllers: [ComplaintController, ComplaintTypeController, ComplainantController],
-  providers: [ComplaintService, ComplaintTypeService, ComplainantService, CityService, FirebaseStorageService, ImageService],
+  controllers: [
+    ComplaintController,
+    ComplaintTypeController,
+    ComplainantController
+  ],
+  providers: [
+    ComplaintService,
+    ComplaintTypeService,
+    ComplainantService,
+    CityService,
+    FirebaseStorageService,
+    ImageService
+  ],
 })
-export class ComplaintModule {}
+export class ComplaintModule { }

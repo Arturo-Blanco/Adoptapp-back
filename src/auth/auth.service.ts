@@ -73,8 +73,8 @@ export class AuthService {
 
     async validateUser({ email, password }: LoginDTO): Promise<boolean> {
         const user: UserInformation = await this.userInformationRepository.findOne({ where: { email: email } })
-        if (!user || !(await this.validatePassword(password, user.password))) {
-            throw new UnauthorizedException('Invalid user or password');
+        if (!user || !user.is_active ||!(await this.validatePassword(password, user.password))) {
+            return false;
         }
         return true;
     }

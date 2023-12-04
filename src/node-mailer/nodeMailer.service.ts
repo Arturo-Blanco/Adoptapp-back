@@ -1,3 +1,4 @@
+import { ConfigService } from '@nestjs/config';
 import { Injectable } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 
@@ -6,12 +7,12 @@ export class NodeMailerService {
 
     private transporter: nodemailer.Transporter;
 
-    constructor() {
+    constructor(private configService : ConfigService) {
         this.transporter = nodemailer.createTransport({
-            service: 'hotmail', // Proveedor de correo
+            service: configService.get('MAIL_PROVIDER'), // Proveedor de correo
             auth: {
-                user: 'blanco_a@hotmail.com.ar',
-                pass: 'Adolf37182915',
+                user: configService.get('MAIL_USER'),
+                pass: configService.get('MAIL_PASS'),
             },
         });
     }
