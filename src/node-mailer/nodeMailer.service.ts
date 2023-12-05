@@ -16,7 +16,7 @@ export class NodeMailerService {
             },
         });
     }
-
+    
     async sendMail(to: string, confirmationURL : string): Promise<any> {
         try {
             let subject = '';
@@ -39,7 +39,7 @@ export class NodeMailerService {
             }
             await this.transporter.sendMail({
                 to: to,
-                from: '"AdoptApp" blanco_a@hotmail.com.ar',
+                from: '"AdoptApp" amayagonzalo86_2023@hotmail.com',
                 subject: subject,
                 html: `
             <html>

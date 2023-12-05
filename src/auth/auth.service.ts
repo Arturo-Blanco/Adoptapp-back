@@ -12,6 +12,8 @@ import { JwtService } from "@nestjs/jwt";
 import { JWTPayload } from "./interfaces/auth.interface";
 import { InjectRepository } from "@nestjs/typeorm";
 import * as bcrypt from 'bcrypt';
+import { City } from 'src/city/entities/city.entity';
+import { CityService } from 'src/city/city.service';
 
 @Injectable()
 export class AuthService {
@@ -21,6 +23,7 @@ export class AuthService {
         private readonly userService: UserService,
         private readonly roleService: RoleService,
         private readonly jwtService: JwtService,
+        private readonly cityService: CityService,
         private readonly confirmationTokenService: ConfirmationTokenService,
         @InjectRepository(UserInformation)
         private readonly userInformationRepository: Repository<UserInformation>,
@@ -29,17 +32,21 @@ export class AuthService {
     ) { }
 
     async register(userDTO: CreateUserDTO): Promise<any> {
-        const { email, password, role } = userDTO;
+        const { name, surname, phoneNumber, zipCode, hasPet, livingPlace, address, email, password, role } = userDTO;
 
         try {
-            const user: UserInformation = await this.userInformationRepository.findOne({ where: { email: email } })
+            const user: UserInformation = await this.userInformationRepository.findOne({ where: { email: email.toLocaleLowerCase() } })
 
             if (user) {
                 throw new BadRequestException(`Email is already in use.`);
             }
 
+            const city: City = await this.cityService.findByZip(zipCode)
             const encriptedPassword = await this.hasPassword(password);
             const newRegister: UserInformation = new UserInformation(email.toLowerCase(), encriptedPassword);
+            const newUser: User = new User(name, surname, phoneNumber, address, livingPlace, hasPet);
+            newUser.city = city;
+            newRegister.user = newUser;
 
             if (role) {
                 const newRole: Role = await this.roleService.find(role);
@@ -50,16 +57,13 @@ export class AuthService {
                 throw new Error('Error adding information')
             }
 
-            const transaction = await this.dataSource.transaction(async manager => {
-                const newUser: User = await this.userService.addUser(userDTO);
-                newRegister.user = newUser;
+            const transaction = await this.dataSource.transaction(async (manager) => {
+                await manager.save(User, newUser)
                 await manager.save(UserInformation, newRegister);
 
-                const token = await this.confirmationTokenService.createToken(newUser);
-                await this.confirmationTokenService.sendConfirmationEmail(email, token.getToken());
-
-                return 'Transaction complete.'
             });
+            const token = await this.confirmationTokenService.createToken(newUser);
+            await this.confirmationTokenService.sendConfirmationEmail(email, token.getToken());
             return transaction;
         }
         catch (error) {
