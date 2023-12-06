@@ -1,8 +1,9 @@
+import { CityService } from './../city/city.service';
 import { ConfirmationTokenService } from './confirmationToken/confirmation-token.service';
-import { BadRequestException, HttpException, HttpStatus, Injectable, UnauthorizedException } from "@nestjs/common";
-import { UserService } from "src/users/user.service";
+import { BadRequestException, HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { CreateUserDTO } from "src/users/dto/user.dto";
 import { User } from "src/users/entities/user.entity";
+import { City } from 'src/city/entities/city.entity';
 import { UserInformation } from "src/users/entities/user-information.entity";
 import { DataSource, Repository } from "typeorm";
 import { Role } from "src/role/entities/role.entity";
@@ -18,9 +19,9 @@ export class AuthService {
 
     constructor(
         private readonly dataSource: DataSource,
-        private readonly userService: UserService,
         private readonly roleService: RoleService,
         private readonly jwtService: JwtService,
+        private readonly cityService: CityService,
         private readonly confirmationTokenService: ConfirmationTokenService,
         @InjectRepository(UserInformation)
         private readonly userInformationRepository: Repository<UserInformation>,
@@ -29,17 +30,21 @@ export class AuthService {
     ) { }
 
     async register(userDTO: CreateUserDTO): Promise<any> {
-        const { email, password, role } = userDTO;
+        const { name, surname, phoneNumber, zipCode, hasPet, livingPlace, address, email, password, role } = userDTO;
 
         try {
-            const user: UserInformation = await this.userInformationRepository.findOne({ where: { email: email } })
+            const user: UserInformation = await this.userInformationRepository.findOne({ where: { email: email.toLocaleLowerCase() } })
 
             if (user) {
                 throw new BadRequestException(`Email is already in use.`);
             }
 
+            const city: City = await this.cityService.findByZip(zipCode)
             const encriptedPassword = await this.hasPassword(password);
             const newRegister: UserInformation = new UserInformation(email.toLowerCase(), encriptedPassword);
+            const newUser: User = new User(name, surname, phoneNumber, address, livingPlace, hasPet);
+            newUser.city = city;
+            newRegister.user = newUser;
 
             if (role) {
                 const newRole: Role = await this.roleService.find(role);
@@ -50,16 +55,12 @@ export class AuthService {
                 throw new Error('Error adding information')
             }
 
-            const transaction = await this.dataSource.transaction(async manager => {
-                const newUser: User = await this.userService.addUser(userDTO);
-                newRegister.user = newUser;
+            const transaction = await this.dataSource.transaction(async (manager) => {
+                await manager.save(User, newUser)
                 await manager.save(UserInformation, newRegister);
-
-                const token = await this.confirmationTokenService.createToken(newUser);
-                await this.confirmationTokenService.sendConfirmationEmail(email, token.getToken());
-
-                return 'Transaction complete.'
             });
+            const token = await this.confirmationTokenService.createToken(newUser);
+            await this.confirmationTokenService.sendConfirmationEmail(email, token.getToken());
             return transaction;
         }
         catch (error) {
@@ -73,7 +74,7 @@ export class AuthService {
 
     async validateUser({ email, password }: LoginDTO): Promise<boolean> {
         const user: UserInformation = await this.userInformationRepository.findOne({ where: { email: email } })
-        if (!user || !user.is_active ||!(await this.validatePassword(password, user.password))) {
+        if (!user || !user.is_active || !(await this.validatePassword(password, user.password))) {
             return false;
         }
         return true;
@@ -85,13 +86,16 @@ export class AuthService {
 
         const payload: JWTPayload = {
             sub: user.id,
-            role: userInfo.role.role
+            role: userInfo.role.role,
+            email: userInfo.email,
         };
         return {
-            jwt: this.jwtService.sign(payload),
-            user: {
-                ...user,
-                email: userInfo.email,
+            user_information: {
+                jwt: this.jwtService.sign(payload),
+                user: {
+                    name: user.name,
+                    surname: user.surname,
+                }
             }
         };
     }
@@ -110,14 +114,14 @@ export class AuthService {
         }
     }
 
-    
-    async hasPassword(password : string) {
+
+    async hasPassword(password: string) {
         const salt = await bcrypt.genSalt();
         const encriptPassword = await bcrypt.hash(password, salt);
         return encriptPassword
     }
 
-    async validatePassword(passwordEntered : string, hashedPassword: string): Promise<boolean> {
+    async validatePassword(passwordEntered: string, hashedPassword: string): Promise<boolean> {
         return await bcrypt.compare(passwordEntered, hashedPassword);
     }
 }

@@ -2,6 +2,7 @@
 export interface JWTPayload {
     readonly sub : number;
     readonly role: string;
+    readonly email : string;
 }
 
 export interface AuthTokenResult {

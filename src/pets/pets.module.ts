@@ -10,9 +10,13 @@ import { Adoption } from 'src/adoptions/entities/adoptions.entity';
 import { Institution } from 'src/institutions/entities/institution.entity';
 import { ImageService } from 'src/Sharp/image.service';
 import { FirebaseStorageService } from 'src/Firebase/firebase.service';
+import { UserService } from 'src/users/user.service';
+import { CityService } from 'src/city/city.service';
+import { UserModule } from 'src/users/user.module';
 
 @Module({
   imports: [
+    UserModule,
     TypeOrmModule.forFeature([Pet, City, Institution, User, Attribute, Adoption])
   ],
   controllers: [PetsController],

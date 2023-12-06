@@ -9,18 +9,20 @@ import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { AdminAccess } from 'src/auth/decorators/admin.decorator';
 import { RoleDTO } from 'src/role/dto/role.dto';
 import { LoginDTO } from 'src/auth/dto/login.dto';
+import { Roles } from 'src/auth/decorators/roles.decorator';
 
 @Controller('user')
 @UseGuards(AuthGuard, RolesGuard)
 export class UsersController {
   constructor(private readonly userService: UserService) { }
 
+  @AdminAccess()
   @Post('addUser')
   async getAddUser(@Body() userDTO: CreateUserDTO): Promise<User> {
     return await this.userService.addUser(userDTO);
   }
 
-  @PublicAccess()
+  @Roles('USER')
   @Post('addPet')
   async getAddPet(@Body() body: UserWithPet): Promise<{ status: number, message: string }> {
     return await this.userService.addPet(body)
@@ -28,32 +30,35 @@ export class UsersController {
 
   @PublicAccess()
   @Post('restore/password')
-  async getRestorePass(@Body() userEmail  : LoginDTO): Promise<string> {
+  async getRestorePass(@Body() userEmail: LoginDTO): Promise<string> {
     return await this.userService.restorePass(userEmail);
   }
 
+  @Roles('ADMIN', 'EDITOR')
   @Get('all')
   async getAllUsers(): Promise<User[]> {
     return await this.userService.allUsers();
   }
 
-  @AdminAccess()
+  @Roles('USER')
   @Get(':userId')
   async getUserById(@Param('userId', ParseIntPipe) userId: number): Promise<User> {
     return await this.userService.findById(userId);
   }
 
+  @Roles('USER')
   @Get(':userEmail')
   async getUserByEmail(@Param('userEmail') userEmail: string): Promise<UserInformation> {
     return await this.userService.findEmail(userEmail);
   }
 
+  @Roles('USER')
   @Delete('delete/:userEmail')
   async getDeleteUser(@Param('userEmail') userEmail: string): Promise<string> {
     return await this.userService.deleteUser(userEmail);
   }
 
-
+  @Roles('USER')
   @Delete('removePet')
   async getDeletePet(@Body() body: UserWithPet): Promise<string> {
     return await this.userService.removePet(body);
@@ -68,6 +73,6 @@ export class UsersController {
   @PublicAccess()
   @Patch('password/edit')
   async getChangePassword(@Query('reset_password_token') token: string, @Body() newPassword: LoginDTO): Promise<string> {
-      return await this.userService.changePassword(token, newPassword);
+    return await this.userService.changePassword(token, newPassword);
   }
 }

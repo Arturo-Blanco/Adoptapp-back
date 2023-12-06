@@ -35,5 +35,6 @@ import { NodeMailerService } from 'src/node-mailer/nodeMailer.service';
     ConfirmationTokenService,
     NodeMailerService
   ],
+  exports : [ UserModule, UserService]
 })
 export class UserModule { }

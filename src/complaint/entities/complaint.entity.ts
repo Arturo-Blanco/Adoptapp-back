@@ -17,13 +17,13 @@ export class Complaint {
     @Column()
     img_url: string;
 
-    @Column({ nullable: true })
+    @Column({ nullable: true , default: null})
     pet_name: string;
 
-    @Column({ nullable: true })
+    @Column({ nullable: true , default: null})
     pet_specie: string;
 
-    @Column({ nullable: true })
+    @Column({ nullable: true , default: null})
     pet_age: number;
 
     @Column()
@@ -35,7 +35,7 @@ export class Complaint {
     @Column()
     fk_complainant_id: number;
 
-    @Column()
+    @Column({ default: false})
     show_complaint: boolean;
 
     @ManyToOne(() => ComplaintType, complaintType => complaintType.complaints)

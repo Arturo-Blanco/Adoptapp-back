@@ -22,9 +22,9 @@ export class ComplainantController {
         return await this.complainantService.findById(complainantId);
     }
 
-    @Get('findByEmail/:email')
-    async getFinByEmail(@Param('email') complainantEmail: string): Promise<Complainant> {
-        return await this.complainantService.findByEmail(complainantEmail);
+    @Get('findByPhone/:phone')
+    async getFinByEmail(@Param('phone') complainantPhone: string): Promise<Complainant> {
+        return await this.complainantService.findByPhone(complainantPhone);
     }
 
     @Patch('update/:id')

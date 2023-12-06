@@ -2,14 +2,12 @@ export class ComplaintTypeDTO {
     readonly type: string;
 }
 export class ComplainantDTO {
-    readonly email: string;
     readonly phoneNumber: string;
 }
 export class CreateComplaintDTO {
     readonly complaintDescription: string;
     readonly typeOfComplaint: string;
     readonly zipCode: number;
-    readonly email: string;
     readonly phoneNumber: string;
     readonly petName?: string;
     readonly petSpecie?: string;

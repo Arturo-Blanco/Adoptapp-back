@@ -12,9 +12,9 @@ export class ComplainantService {
     ) { }
 
     async createComplainant(createComplainantDTO: ComplainantDTO): Promise<Complainant> {
-        const { email, phoneNumber } = createComplainantDTO;
+        const { phoneNumber } = createComplainantDTO;
         try {
-            const newComplainant: Complainant = new Complainant(email.toLocaleLowerCase(), phoneNumber);
+            const newComplainant: Complainant = new Complainant(phoneNumber);
             return await this.complainantRepository.save(newComplainant);
         }
         catch (error) {
@@ -42,14 +42,11 @@ export class ComplainantService {
     }
 
     async updateComplainant(complainantId: number, complainantDTO: ComplainantDTO): Promise<string> {
-        const { email, phoneNumber } = complainantDTO;
+        const { phoneNumber } = complainantDTO;
         try {
             const complainant: Complainant = await this.findById(complainantId);
             if (!complainant) {
                 throw new NotFoundException(`There is no complainant with id ${complainantId}.`);
-            }
-            if (email) {
-                complainant.setEmail(email.toLocaleLowerCase());
             }
             if (phoneNumber) {
                 complainant.setPhoneNumber(phoneNumber)
@@ -84,9 +81,9 @@ export class ComplainantService {
         }
     }
 
-    async findByEmail(complainantEmail: string): Promise<Complainant> {
+    async findByPhone(complainantPhone: string): Promise<Complainant> {
         try {
-            const criterion: FindOneOptions = { where: { email: complainantEmail.toLocaleLowerCase() } };
+            const criterion: FindOneOptions = { where: { phone_number: complainantPhone} };
             const complainant: Complainant = await this.complainantRepository.findOne(criterion);
             return complainant;
         }

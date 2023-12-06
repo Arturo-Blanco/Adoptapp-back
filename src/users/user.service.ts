@@ -138,7 +138,7 @@ export class UserService {
   //Function to get user by ID
   async findById(userId: number): Promise<User> {
     try {
-      const criterion: FindOneOptions = { relations: ['pets'], where: { id: userId } };
+      const criterion: FindOneOptions = { relations: ['pets', 'city'], where: { id: userId } };
       const user: User = await this.userRepository.findOne(criterion);
 
       if (!user) {
