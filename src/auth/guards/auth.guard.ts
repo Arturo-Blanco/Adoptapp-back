@@ -13,10 +13,7 @@ export class AuthGuard implements CanActivate {
     private readonly userService: UserService,
     private readonly reflector: Reflector
   ) { }
-
-  async canActivate(
-    context: ExecutionContext,
-  ) {
+  async canActivate(context: ExecutionContext) {
 
     const isPublic = this.reflector.get<boolean>(
       PUBLIC_KEY,
@@ -28,8 +25,8 @@ export class AuthGuard implements CanActivate {
     }
 
     const req = context.switchToHttp().getRequest<Request>();
-
-    const token = req.headers['access_token']
+    
+    const token = req.headers['baerer']
 
     if (!token || Array.isArray(token)) {
       throw new UnauthorizedException('Invalid token');
@@ -48,14 +45,14 @@ export class AuthGuard implements CanActivate {
     const { sub } = manageToken;
 
     const user = await this.userService.findInformation(sub);
-
+    
     if (!user) {
       throw new UnauthorizedException('Invalid user');
     }
 
     req.idUser = user.user_id;
     req.roleUser = user.role.getRole();
-    
+
     return true;
   }
 }
