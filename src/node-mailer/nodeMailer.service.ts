@@ -9,7 +9,7 @@ export class NodeMailerService {
 
     constructor(private configService : ConfigService) {
         this.transporter = nodemailer.createTransport({
-            service: configService.get('MAIL_PROVIDER'), // Proveedor de correo
+            service: configService.get('MAIL_PROVIDER'),
             auth: {
                 user: configService.get('MAIL_USER'),
                 pass: configService.get('MAIL_PASS'),

@@ -38,6 +38,6 @@ import { RequestModule } from 'src/adoptions/requets/request.module';
     ConfirmationTokenService,
     NodeMailerService
   ],
-  exports : [ UserModule, UserService]
+  exports: [UserModule, UserService]
 })
 export class UserModule { }

@@ -9,12 +9,12 @@ import { Pet } from 'src/pets/entities/pet.entity';
 import { User } from 'src/users/entities/user.entity';
 
 @Module({
-    imports : [
+    imports: [
         PetsModule,
         UserModule,
         TypeOrmModule.forFeature([RequestedPet, Pet, User])],
     controllers: [RequestPetController],
-    providers : [ RequestedPetsService],
-    exports : [RequestModule]
+    providers: [RequestedPetsService],
+    exports: [RequestModule]
 })
-export class RequestModule {}
+export class RequestModule { }

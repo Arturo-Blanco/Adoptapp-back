@@ -19,22 +19,29 @@ import { ConfirmationTokenService } from "./confirmationToken/confirmation-token
 import { ConfirmationToken } from "./confirmationToken/entities/confirmation-token.entity";
 import { ConfirmationTokenController } from "./confirmationToken/confirmation-token.controller";
 import { RequestedPet } from "src/adoptions/requets/entities/request.entity";
+import { MyConfigModule } from "src/config.module";
+import { ConfigService } from "@nestjs/config";
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([
-        UserInformation,
-        User, 
-        Pet, 
-        City, 
-        Role, 
-        ConfirmationToken, 
-        RequestedPet]),
-    JwtModule.register({
-        global: true,
-        secret: 'LAS PALABRAS USADAS EN UN SECRETO DEBEN SER SECRETAS PARA QUE TU SECRETO NO SEA DESCUBIERTO',
-        signOptions: { expiresIn: "60s" }
-    })
+            UserInformation,
+            User,
+            Pet,
+            City,
+            Role,
+            ConfirmationToken,
+            RequestedPet]),
+        JwtModule.registerAsync({
+            imports: [MyConfigModule],
+            inject: [ConfigService],
+            useFactory: async (configService: ConfigService) => ({
+                global: true,
+                secret: configService.get<string>('JWT_SECRET'),
+                signOptions: { expiresIn: '1d' }
+            })
+        }),
+        MyConfigModule,
     ],
     controllers: [AuthController, ConfirmationTokenController],
     providers: [
