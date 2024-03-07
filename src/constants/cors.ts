@@ -1,6 +1,4 @@
-import { CorsOptions } from "vite";
-
-export const CORS : CorsOptions = {
+export const CORS = {
     origin: true,
     methods: 'HET, HEAD, PUT,PATCH,DELETE, POST, OPTIONS',
     credentials: true,

@@ -5,7 +5,7 @@ import { User } from 'src/users/entities/user.entity';
 @Entity()
 export class ConfirmationToken {
     @PrimaryColumn()
-    user_id: number;
+    user_id: string;
 
     @Column()
     token: string;
@@ -21,7 +21,7 @@ export class ConfirmationToken {
         this.token = token;
     }
 
-    public getUserId() : number {
+    public getUserId() : string {
         return this.user_id;
     }
 

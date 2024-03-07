@@ -7,7 +7,7 @@ import { Exclude } from "@nestjs/class-transformer";
 export class UserInformation {
 
     @PrimaryColumn()
-    user_id: number;
+    user_id: string;
 
     @Column({ type: 'boolean', default: false })
     is_active: boolean;
@@ -34,7 +34,7 @@ export class UserInformation {
         this.password = password;
     }
 
-    public getUserId(): number {
+    public getUserId(): string {
         return this.user_id;
     }
 

@@ -1,8 +1,8 @@
-import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, ManyToOne, CreateDateColumn, ManyToMany, JoinTable, OneToOne } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, ManyToOne, CreateDateColumn, ManyToMany, JoinTable, OneToOne, OneToMany } from "typeorm";
 import { Attribute } from "../attributes/entities/attribute.entity";
-import { User } from "src/users/entities/user.entity";
 import { Adoption } from "src/adoptions/entities/adoptions.entity";
 import { Institution } from "src/institutions/entities/institution.entity";
+import { RequestedPet } from "src/adoptions/requets/entities/request.entity";
 
 @Entity({ name: 'pets' })
 export class Pet {
@@ -48,8 +48,8 @@ export class Pet {
     @JoinTable({ name: 'pets_attributes' })
     attributes: Attribute[];
 
-    @ManyToMany(() => User, user => user.pets)
-    users: User[];
+    @OneToMany(() => RequestedPet, request => request.pet)
+    request: RequestedPet;
 
     @OneToOne(() => Adoption, adoption => adoption.pet)
     adoption: Adoption;
@@ -83,6 +83,9 @@ export class Pet {
     public getInterested(): number {
         return this.interested;
     }
+    public getInstitutionName() : string {
+        return this.institution.name
+    }
     public setName(newName: string): void {
         this.name = newName;
     }
@@ -107,7 +110,10 @@ export class Pet {
     public setUrlImg(newUrlImg: string): void {
         this.url_img = newUrlImg;
     }
-    public setAvailable(): void {
-        this.available = false;
+    public setAvailable(newState : boolean): void {
+        this.available = newState;
+    }
+    public removeInterested() : void {
+        this.interested -= 1 ;
     }
 }

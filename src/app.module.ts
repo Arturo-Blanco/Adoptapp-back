@@ -11,6 +11,7 @@ import { AuthModule } from './auth/auth.module';
 import { RoleModule } from './role/role.module';
 import { NodeMailerModule } from './node-mailer/nodeMailer.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { RequestModule } from './adoptions/requets/request.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -41,7 +42,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     AuthModule,
     RoleModule,
     NodeMailerModule,
-    ComplaintModule
+    ComplaintModule,
+    RequestModule
   ],
   controllers: [],
   providers: [],

@@ -18,9 +18,18 @@ import { UserService } from "src/users/user.service";
 import { ConfirmationTokenService } from "./confirmationToken/confirmation-token.service";
 import { ConfirmationToken } from "./confirmationToken/entities/confirmation-token.entity";
 import { ConfirmationTokenController } from "./confirmationToken/confirmation-token.controller";
+import { RequestedPet } from "src/adoptions/requets/entities/request.entity";
 
 @Module({
-    imports: [TypeOrmModule.forFeature([UserInformation, User, Pet, City, Role, ConfirmationToken]),
+    imports: [
+        TypeOrmModule.forFeature([
+        UserInformation,
+        User, 
+        Pet, 
+        City, 
+        Role, 
+        ConfirmationToken, 
+        RequestedPet]),
     JwtModule.register({
         global: true,
         secret: 'LAS PALABRAS USADAS EN UN SECRETO DEBEN SER SECRETAS PARA QUE TU SECRETO NO SEA DESCUBIERTO',

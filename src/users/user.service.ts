@@ -2,9 +2,8 @@ import { HttpException, HttpStatus, Injectable, NotFoundException, UnauthorizedE
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { FindManyOptions, FindOneOptions, Repository } from 'typeorm';
-import { CreateUserDTO, UserWithPet } from './dto/user.dto';
+import { CreateUserDTO, UserProfile } from './dto/user.dto';
 import { checkEmptyValues, checkValues } from 'src/functions/valuesValidation';
-import { Pet } from 'src/pets/entities/pet.entity';
 import { CityService } from 'src/city/city.service';
 import { City } from 'src/city/entities/city.entity';
 import { UserInformation } from './entities/user-information.entity';
@@ -15,6 +14,7 @@ import { ConfirmationTokenService } from 'src/auth/confirmationToken/confirmatio
 import { ConfirmationToken } from 'src/auth/confirmationToken/entities/confirmation-token.entity';
 import { LoginDTO } from 'src/auth/dto/login.dto';
 import * as bcrypt from 'bcrypt';
+import { RequestedPet } from 'src/adoptions/requets/entities/request.entity';
 
 @Injectable()
 export class UserService {
@@ -24,13 +24,13 @@ export class UserService {
     private readonly roleService: RoleService,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    @InjectRepository(Pet)
-    private readonly petRepository: Repository<Pet>,
     private readonly confirmationTokenService: ConfirmationTokenService,
     @InjectRepository(UserInformation)
     private readonly userInformationRepository: Repository<UserInformation>,
     @InjectRepository(ConfirmationToken)
-    private readonly confirmationTokenRepository: Repository<ConfirmationToken>
+    private readonly confirmationTokenRepository: Repository<ConfirmationToken>,
+    @InjectRepository(RequestedPet)
+    private readonly requestedPetsRepository: Repository<RequestedPet>
   ) { }
 
   validValues = ['name', 'surname', 'phoneNumber', 'address', 'zipCode'];
@@ -66,57 +66,6 @@ export class UserService {
     }
   }
 
-  async addPet({ userId, petId }: UserWithPet): Promise<{ status: number, message: string }> {
-
-    try {
-      if (petId === null) {
-        throw new Error('No pet information requested.');
-      }
-
-      const petCriteria: FindOneOptions = { where: { id: petId } };
-      const existingPet = await this.petRepository.findOne(petCriteria);
-      const user: User = await this.findById(userId);
-
-      // if user exist, is verified if does not have more than 3 requested pet
-      if (user && user.pets.length > 2) {
-        return {
-          status: HttpStatus.BAD_REQUEST,
-          message: 'Maximum adoption requests reached.'
-        };
-      } else {
-
-        const petRequested = user.pets.map(pet => pet.id);
-
-        if (petRequested.includes(petId)) {
-          return {
-            status: HttpStatus.BAD_REQUEST,
-            message: 'You are already registered to adopt this pet.'
-          };
-        } else {
-          petRequested.push(petId);
-        }
-
-        const petCriteria: FindManyOptions = { where: petRequested.map(petId => ({ id: petId })) };
-        const requestedPet = await this.petRepository.find(petCriteria);
-
-        user.setInterestedIn(requestedPet);
-        existingPet.setInterested();
-
-        await this.userRepository.save(user);
-        await this.petRepository.save(existingPet);
-        return { 
-          status: HttpStatus.OK, 
-          message: `${user.getSurname()} ${user.getName()} is interested in adopting another pet.` 
-        }
-      }
-    } catch (error) {
-      throw new HttpException({
-        status: HttpStatus.INTERNAL_SERVER_ERROR,
-        error: 'Error adding new user',
-        message: error.message,
-      }, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-  }
   // Function to get all users with their relasionship
   async allUsers(): Promise<User[]> {
     try {
@@ -136,7 +85,7 @@ export class UserService {
     }
   }
   //Function to get user by ID
-  async findById(userId: number): Promise<User> {
+  async findById(userId: string): Promise<User> {
     try {
       const criterion: FindOneOptions = { relations: ['pets', 'city'], where: { id: userId } };
       const user: User = await this.userRepository.findOne(criterion);
@@ -144,8 +93,10 @@ export class UserService {
       if (!user) {
         throw new NotFoundException(`There is no user with ID ${userId}.`);
       }
+      
       return user;
     } catch (error) {
+      
       throw new HttpException({
         status: HttpStatus.BAD_REQUEST,
         error: 'Error getting user',
@@ -171,14 +122,14 @@ export class UserService {
     }
   }
   // Function to delete user by email
-  async deleteUser(userEmail: string): Promise<string> {
+  async deleteUser(userId: string): Promise<string> {
     try {
-      const user: UserInformation = await this.findEmail(userEmail);
+      const user: UserInformation = await this.findInformation(userId);
       user.is_active = false;
 
       await this.userInformationRepository.save(user);
 
-      return `${userEmail} was deleted from database.`;
+      return `User was deleted from database.`;
 
     } catch (error) {
       throw new HttpException({
@@ -188,52 +139,9 @@ export class UserService {
       }, HttpStatus.BAD_REQUEST);
     }
   }
-  //Function to remove a requested pet
-  async removePet({ userId, petId }: UserWithPet): Promise<string> {
-    try {
-      const user: User = await this.findById(userId);
-      const petCriteria: FindOneOptions = { where: { id: petId } };
-      const existingPet = await this.petRepository.findOne(petCriteria);
 
-      if (!existingPet) {
-        throw new Error(`There is no pet with ID ${petId}.`);
-      }
-
-      const requestedPet = user.pets.map(pet => pet.id);
-
-      if (!requestedPet.includes(petId)) {
-        throw new Error(`The user ${user.getSurname()} ${user.getName()} does not have a registered pet with ID ${petId}.`);
-
-      } else {
-
-        const indexPet = requestedPet.indexOf(petId);
-        requestedPet.splice(indexPet, 1);
-
-        const petCriteria: FindManyOptions = { where: requestedPet.map(petId => ({ id: petId })) };
-        const newPets = await this.petRepository.find(petCriteria);
-        user.setInterestedIn(newPets);
-
-        // If the user does not have a requested pet, an empty array is assigned
-        if (requestedPet.length === 0) {
-          user.pets = [];
-        }
-        existingPet.interested -= 1;
-
-        await this.petRepository.save(existingPet);
-        await this.userRepository.save(user);
-
-        return `The pet with id ${petId} was remove from user ${user.getSurname()} ${user.getName()}.`
-      }
-    } catch (error) {
-      throw new HttpException({
-        status: HttpStatus.CONFLICT,
-        error: 'Error getting user',
-        message: error.message,
-      }, HttpStatus.CONFLICT);
-    }
-  }
   //Function to get user information by ID
-  async findInformation(userId: number): Promise<UserInformation> {
+  async findInformation(userId: string): Promise<UserInformation> {
     try {
       const criteria: FindOneOptions = { where: { user_id: userId }, relations: ['role'] }
       const information: UserInformation = await this.userInformationRepository.findOne(criteria);
@@ -250,8 +158,52 @@ export class UserService {
       }, HttpStatus.CONFLICT);
     }
   }
+
+  //Function to get profile
+  async findProfile(userId: string): Promise<any> {
+    try {
+      const criterion: FindOneOptions = { relations: ['city', 'userInformation'], where: { id: userId } };
+
+      const requestedPets: RequestedPet[] = await this.requestedPetsRepository.find({ where : { user_id : userId,request_state : true}, relations: ['pet', 'pet.institution', 'pet.institution.city']})
+      const user: User = await this.userRepository.findOne(criterion);
+
+      if (!user) {
+        throw new NotFoundException(`There is no user with ID ${userId}.`);
+      }
+
+      const userProfile: UserProfile = {
+        name: user.name,
+        surname: user.surname,
+        createAt: user.creation_date,
+        email: user.userInformation.email,
+        phoneNumber: user.phone_number,
+        address: user.address,
+        hasPet: user.has_pet,
+        livingPlace: user.living_place,
+        city: user.city.name,
+        pets: requestedPets.map(pet => ({
+          id: pet.pet.id,
+          name: pet.pet.name,
+          sex: pet.pet.sex,
+          specie: pet.pet.specie,
+          age: pet.pet.age,
+          urlImg: pet.pet.url_img,
+          institution: pet.pet.institution.name,
+          city: pet.pet.institution.city.name
+        }))
+      }
+      return userProfile;
+    } catch (error) {
+      console.log(error)
+      throw new HttpException({
+        status: HttpStatus.BAD_REQUEST,
+        error: 'Error getting user',
+        message: error.message,
+      }, HttpStatus.BAD_REQUEST);
+    }
+  }
   //Function to change the user role
-  async changeRole(userId: number, role: RoleDTO): Promise<string> {
+  async changeRole(userId: string, role: RoleDTO): Promise<string> {
     try {
       const user: UserInformation = await this.findInformation(userId);
       const newRole: Role = await this.roleService.find(role.role);
@@ -271,7 +223,7 @@ export class UserService {
   }
 
   //funtion to restore pass
-  async restorePass({ email }: LoginDTO): Promise<string> {
+  async sentTokenPasswordRestore({ email }: LoginDTO): Promise<string> {
     try {
       const user: UserInformation = await this.findEmail(email);
       const token = await this.confirmationTokenService.createToken(user.user);
@@ -290,7 +242,7 @@ export class UserService {
 
 
   // function to change password
-  async changePassword(token: string, { password }: LoginDTO): Promise<string> {
+  async passwordRestoration(token: string, { password }: LoginDTO): Promise<string> {
     try {
       const existingToken = await this.confirmationTokenRepository.findOne({ where: { token: token } })
 

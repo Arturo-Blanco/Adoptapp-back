@@ -21,5 +21,6 @@ import { UserModule } from 'src/users/user.module';
   ],
   controllers: [PetsController],
   providers: [PetsService, ImageService, FirebaseStorageService],
+  exports : [PetsModule]
 })
 export class PetsModule {}

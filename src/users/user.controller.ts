@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, UseGuards, Query } from '@nestjs/common';
 import { UserService } from './user.service';
-import { CreateUserDTO, UserWithPet } from './dto/user.dto';
+import { CreateUserDTO, UserProfile } from './dto/user.dto';
 import { User } from './entities/user.entity';
 import { UserInformation } from './entities/user-information.entity';
 import { PublicAccess } from 'src/auth/decorators/public.decorator';
@@ -22,16 +22,10 @@ export class UsersController {
     return await this.userService.addUser(userDTO);
   }
 
-  @Roles('USER')
-  @Post('addPet')
-  async getAddPet(@Body() body: UserWithPet): Promise<{ status: number, message: string }> {
-    return await this.userService.addPet(body)
-  }
-
   @PublicAccess()
   @Post('restore/password')
-  async getRestorePass(@Body() userEmail: LoginDTO): Promise<string> {
-    return await this.userService.restorePass(userEmail);
+  async getsentTokenPasswordRestore(@Body() userEmail: LoginDTO): Promise<string> {
+    return await this.userService.sentTokenPasswordRestore(userEmail);
   }
 
   @Roles('ADMIN', 'EDITOR')
@@ -40,10 +34,16 @@ export class UsersController {
     return await this.userService.allUsers();
   }
 
-  @Roles('USER')
+  @Roles('ADMIN','USER')
   @Get(':userId')
-  async getUserById(@Param('userId', ParseIntPipe) userId: number): Promise<User> {
+  async getUserById(@Param('userId', ParseIntPipe) userId: string): Promise<User> {
     return await this.userService.findById(userId);
+  }
+
+  @Roles('ADMIN','USER')
+  @Get('profile/:userId')
+  async getProfile(@Param('userId') userId: string): Promise<UserProfile> {
+    return await this.userService.findProfile(userId);
   }
 
   @Roles('USER')
@@ -52,27 +52,15 @@ export class UsersController {
     return await this.userService.findEmail(userEmail);
   }
 
-  @Roles('USER')
-  @Delete('delete/:userEmail')
-  async getDeleteUser(@Param('userEmail') userEmail: string): Promise<string> {
-    return await this.userService.deleteUser(userEmail);
-  }
-
-  @Roles('USER')
-  @Delete('removePet')
-  async getDeletePet(@Body() body: UserWithPet): Promise<string> {
-    return await this.userService.removePet(body);
-  }
-
-  @AdminAccess()
-  @Patch('updateRole/:userId')
-  async getUpdateRole(@Param('userId', ParseIntPipe) userId: number, @Body() role: RoleDTO): Promise<string> {
-    return await this.userService.changeRole(userId, role);
+  @Roles('USER','ADMIN')
+  @Delete('delete/:userId')
+  async getDeleteUser(@Param('userId', ParseIntPipe) userId: string): Promise<string> {
+    return await this.userService.deleteUser(userId);
   }
 
   @PublicAccess()
   @Patch('password/edit')
-  async getChangePassword(@Query('reset_password_token') token: string, @Body() newPassword: LoginDTO): Promise<string> {
-    return await this.userService.changePassword(token, newPassword);
+  async getPasswodRestoration(@Query('reset_password_token') token: string, @Body() newPassword: LoginDTO): Promise<string> {
+    return await this.userService.passwordRestoration(token, newPassword);
   }
 }

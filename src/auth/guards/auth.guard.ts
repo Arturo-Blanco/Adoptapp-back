@@ -1,7 +1,6 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
-import { Observable } from 'rxjs';
 import { PUBLIC_KEY } from 'src/constants/key.decorators';
 import { UserService } from 'src/users/user.service';
 import { useToken } from 'src/utils/use.token';
@@ -26,14 +25,14 @@ export class AuthGuard implements CanActivate {
 
     const req = context.switchToHttp().getRequest<Request>();
     
-    const token = req.headers['baerer']
-
+    const token = req.headers['authorization']
+    
     if (!token || Array.isArray(token)) {
       throw new UnauthorizedException('Invalid token');
     }
 
     const manageToken: IUseToken | string = useToken(token);
-
+    
     if (typeof manageToken === 'string') {
       throw new UnauthorizedException(manageToken);
     }

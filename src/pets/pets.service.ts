@@ -9,10 +9,8 @@ import { checkEmptyValues, checkValues } from 'src/functions/valuesValidation';
 import { ImageService } from 'src/Sharp/image.service';
 import { FirebaseStorageService } from 'src/Firebase/firebase.service';
 
-import { City } from 'src/city/entities/city.entity';
 import { Pet } from './entities/pet.entity';
 import { User } from 'src/users/entities/user.entity';
-import { Adoption } from 'src/adoptions/entities/adoptions.entity';
 import { Attribute } from './attributes/entities/attribute.entity';
 
 @Injectable()
@@ -21,21 +19,16 @@ export class PetsService {
   constructor(
     @InjectRepository(Pet)
     private petRepository: Repository<Pet>,
-    @InjectRepository(City)
-    private cityRepository: Repository<City>,
     @InjectRepository(Attribute)
     private readonly attributRepository: Repository<Attribute>,
     @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
-    @InjectRepository(Adoption)
-    private readonly adoptionRepository: Repository<Adoption>,
     private readonly imageService: ImageService,
     private readonly firebaseService: FirebaseStorageService
   ) { }
 
   validValues = ['name', 'specie', 'sex', 'age', 'attributes', 'description', 'urlImg', 'institution_id'];
   // Function to add a new pet
-  async addPet( petDTO: CreatePetDTO): Promise<string> {
+  async addPet(petDTO: CreatePetDTO): Promise<string> {
     const { name, specie, sex, age, description, attributes, urlImg, institution_id } = petDTO;
 
     try {
@@ -48,7 +41,7 @@ export class PetsService {
       if (!checkEmptyValues(petDTO)) {
         throw new Error('Empty fields are not accepted.');
       }
-      
+
       // Create a new pet with the provided arguments
       const newPet: Pet = new Pet(name, specie, sex, age, description, urlImg);
       newPet.attributes = await this.handleAttributes(attributes);
@@ -70,6 +63,24 @@ export class PetsService {
     }
   };
 
+  // funtion to get pet with id
+  async findById(petId: number): Promise<Pet> {
+    try {
+      const criteria: FindOneOptions = { where: { id: petId } }
+      const pet = await this.petRepository.findOne(criteria);
+      if (!pet) {
+        throw new NotFoundException('There is not pet.');
+      }
+      return pet;
+    } catch (error) {
+      throw new HttpException({
+        status: HttpStatus.BAD_REQUEST,
+        error: error
+      },
+        HttpStatus.BAD_REQUEST);
+    }
+  }
+
   // Function to filter pets based on criteria
   async filterPets(pageNumber: number, specie?: string, location_id?: number, sex?: string): Promise<PetDTO[]> {
 
@@ -80,11 +91,11 @@ export class PetsService {
       const filter = {
         ...(specie ? { specie } : {}),
         ...(sex ? { sex } : {}),
-        ...(location_id ? { institution : { fk_city_id : location_id }} : {})
+        ...(location_id ? { institution: { fk_city_id: location_id } } : {})
       }
-      
+
       const criterion: FindManyOptions = {
-        relations: ['attributes','institution'],
+        relations: ['attributes', 'institution', 'institution.city'],
         take: elementsPage,
         where: {
           available: true,
@@ -107,7 +118,8 @@ export class PetsService {
         description: pet.description,
         urlImg: pet.url_img,
         interested: pet.interested,
-        institution : pet.institution.name
+        institution: pet.institution.name,
+        city: pet.institution.city.name
       }));
       return petData;
 
@@ -124,7 +136,7 @@ export class PetsService {
   async olderPets(): Promise<PetDTO[]> {
     try {
       const criterion: FindManyOptions = {
-        relations: ['attributes', 'institution'],
+        relations: ['attributes', 'institution', 'institution.city'],
         order: {
           creation_date: 'DESC',
         },
@@ -148,7 +160,8 @@ export class PetsService {
         description: pet.description,
         urlImg: pet.url_img,
         interested: pet.interested,
-        institution : pet.institution.name
+        institution: pet.institution.name,
+        city: pet.institution.city.name
       }));
       return petData;
 
@@ -182,7 +195,7 @@ export class PetsService {
       const criterion: FindManyOptions = { relations: ['attributes'] };
       const data = await this.petRepository.find(criterion);
 
-      if(data.length === 0) {
+      if (data.length === 0) {
         throw new NotFoundException('There is no pets on the database.')
       }
       if (!data) {
@@ -219,63 +232,6 @@ export class PetsService {
         status: HttpStatus.CONFLICT,
         error: 'Error adding interested',
         message: error.message,
-      }, HttpStatus.CONFLICT);
-    }
-  }
-
-  // Function to mark a pet as available
-  async wasAdopted(petId: number, userId: number, cityId: number): Promise<string> {
-    try {
-      const petcriteria: FindOneOptions = { where: { id: petId } };
-      const pet: Pet = await this.petRepository.findOne(petcriteria);
-
-      if (!pet) {
-        throw new Error(`The pet with ID ${petId} does not exist.`);
-      }
-      if (!pet.available) {
-        throw new Error(`Sorry, ${pet.getName()} has already been adopted.`)
-      }
-      const userCriteria: FindOneOptions = { where: { id: userId }, relations: ['pets'] };
-      const user: User = await this.userRepository.findOne(userCriteria);
-
-      if (!user) {
-        throw new Error(`The user with ID ${userId} does not exist.`);
-      }
-      const cityCriteria: FindOneOptions = { where: { id: cityId } };
-      const city: City = await this.cityRepository.findOne(cityCriteria);
-
-      if (!city) {
-        throw new Error(`The city with ID ${petId} does not exist.`);
-      }
-
-      const newAdoption: Adoption = new Adoption();
-      newAdoption.pet = pet;
-      newAdoption.user = user;
-      newAdoption.city = city;
-
-      const requestedPet = user.pets.map(pet => pet.id);
-      const indexPet = requestedPet.indexOf(petId);
-      requestedPet.splice(indexPet, 1);
-
-      const petCriteria: FindManyOptions = { where: requestedPet.map(petId => ({ id: petId })) };
-      const newPets = await this.petRepository.find(petCriteria);
-      user.setInterestedIn(newPets);
-      // If the user does not have a requested pet, an empty array is assigned
-      if (requestedPet.length === 0) {
-        user.pets = [];
-      }
-      pet.setAvailable();
-
-      await this.userRepository.save(user);
-      await this.adoptionRepository.save(newAdoption);
-      await this.petRepository.save(pet);
-
-      return `${pet.getName()} was adopted in ${city.getName()} by ${user.getSurname()} ${user.getName()}.`
-
-    } catch (error) {
-      throw new HttpException({
-        status: HttpStatus.CONFLICT,
-        error: 'Error when entering the new adoption - ' + error.message,
       }, HttpStatus.CONFLICT);
     }
   }

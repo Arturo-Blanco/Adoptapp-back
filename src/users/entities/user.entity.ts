@@ -1,15 +1,16 @@
 import { Adoption } from "src/adoptions/entities/adoptions.entity";
-import { Pet } from "src/pets/entities/pet.entity";
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, ManyToMany, JoinTable, CreateDateColumn, OneToMany, OneToOne } from "typeorm";
+import { Entity, PrimaryColumn, Column, ManyToOne, JoinColumn, CreateDateColumn, OneToMany, OneToOne } from "typeorm";
 import { UserInformation } from "./user-information.entity";
 import { City } from "src/city/entities/city.entity";
 import { ConfirmationToken } from "src/auth/confirmationToken/entities/confirmation-token.entity";
+import { RequestedPet } from "src/adoptions/requets/entities/request.entity";
+import { v4 as uuidv4 } from 'uuid';
 
 @Entity({ name: 'users' })
 export class User {
 
-    @PrimaryGeneratedColumn()
-    id: number;
+    @PrimaryColumn()
+    id: string = uuidv4();
 
     @CreateDateColumn()
     creation_date: Date;
@@ -35,9 +36,8 @@ export class User {
     @Column()
     has_pet: boolean;
 
-    @ManyToMany(() => Pet, pet => pet.users)
-    @JoinTable({ name: 'interested_users' })
-    pets: Pet[];
+    @OneToMany(() => RequestedPet, request => request.user)
+    request: RequestedPet[];
 
     @OneToMany(() => Adoption, adoption => adoption.user)
     adoption: Adoption;
@@ -47,7 +47,7 @@ export class User {
 
     @OneToOne(() => ConfirmationToken, confirmationToken => confirmationToken.user)
     confirmationToken: ConfirmationToken;
-    
+
     @ManyToOne(() => City, city => city.users)
     @JoinColumn({ name: 'fk_city_id' })
     city: City;
@@ -61,7 +61,7 @@ export class User {
         this.living_place = livingPlace;
     }
 
-    public getId(): number {
+    public getId(): string {
         return this.id
     }
 
@@ -92,12 +92,12 @@ export class User {
         return this.city
     }
 
-    public getInterestedPets(): Pet[] {
-        return this.pets;
+    public getInterestedPets(): RequestedPet[] {
+        return this.request;
     }
 
-    public setInterestedIn(newPets: Pet[]): void {
-        this.pets = newPets;
+    public setInterestedIn(newPets: RequestedPet[]): void {
+        this.request = newPets;
     }
     public setPhoneNumber(newPhoneNumber: string): void {
         this.phone_number = newPhoneNumber;

@@ -1,6 +1,6 @@
 declare namespace Express {
     interface Request {
-        idUser : number;
+        idUser : string;
         roleUser : string;
     }
 }

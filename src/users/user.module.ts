@@ -13,6 +13,8 @@ import { ConfirmationToken } from 'src/auth/confirmationToken/entities/confirmat
 import { RoleService } from 'src/role/role.service';
 import { ConfirmationTokenService } from 'src/auth/confirmationToken/confirmation-token.service';
 import { NodeMailerService } from 'src/node-mailer/nodeMailer.service';
+import { RequestedPet } from 'src/adoptions/requets/entities/request.entity';
+import { RequestModule } from 'src/adoptions/requets/request.module';
 
 
 @Module({
@@ -24,7 +26,8 @@ import { NodeMailerService } from 'src/node-mailer/nodeMailer.service';
       City,
       Pet,
       Adoption,
-      ConfirmationToken
+      ConfirmationToken,
+      RequestedPet,
     ])
   ],
   controllers: [UsersController],

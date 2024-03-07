@@ -50,12 +50,6 @@ export class PetsController {
     }
 
     @AdminAccess()
-    @Patch('adoptedPet/:petId/:userId/:cityId')
-    async getAdoptedPet(@Param('petId', ParseIntPipe) petId: number, @Param('userId', ParseIntPipe) userId: number, @Param('cityId', ParseIntPipe) cityId: number): Promise<string> {
-        return await this.petsService.wasAdopted(petId, userId, cityId);
-    }
-
-    @AdminAccess()
     @Patch('update/:petId')
     async getUpdatePet(@Param('petId', ParseIntPipe) petId: number, @Body() body: UpdatePetDTO): Promise<string> {
         return await this.petsService.updatePet(petId, body);

@@ -53,15 +53,15 @@ export class AdoptionService {
             newAdoption.user = user;
             newAdoption.city = city;
 
-            const userPets = user.pets
-            const requestedPet = userPets.map(pet => pet.id);
+            const userPets = user.request
+            const requestedPet = userPets.map(pet => pet.pet_id);
             const indexPet = requestedPet.indexOf(petId);
             requestedPet.splice(indexPet, 1);
 
             user.setInterestedIn(userPets);
             // If the user does not have a requested pet, an empty array is assigned
             if (requestedPet.length === 0) {
-                user.pets = [];
+                user.request = [];
             }
             pet.setAvailable(false);
 

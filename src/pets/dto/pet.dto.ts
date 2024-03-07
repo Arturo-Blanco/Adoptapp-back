@@ -31,4 +31,5 @@ export class PetDTO {
     readonly urlImg: string;
     readonly interested: number;
     readonly institution : string;
+    readonly city : string
 }
